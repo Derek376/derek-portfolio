@@ -1,7 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async redirects() {
+    return [
+      {
+        source: "/notes/rabbitmq",
+        destination: "/blogs/rabbitmq",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

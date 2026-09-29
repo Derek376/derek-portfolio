@@ -1,10 +1,10 @@
 import Link from "next/link";
 
-export default function RabbitMQNote() {
+export default function RabbitMQBlog() {
   return (
     <article className="mx-auto max-w-3xl px-6 py-20 sm:px-8">
       <Link
-        href="/"
+        href="/blogs"
         className="text-sm text-neutral-500 transition-colors hover:text-neutral-900"
       >
         ← Back
@@ -20,7 +20,7 @@ export default function RabbitMQNote() {
         </h1>
 
         <p className="mt-6 text-lg leading-8 text-neutral-600">
-          Notes from learning asynchronous messaging and building a simple
+          A short introduction to asynchronous messaging, based on building a simple
           producer-consumer system with RabbitMQ.
         </p>
       </header>

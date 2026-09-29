@@ -28,12 +28,19 @@ export default function Header() {
           Derek
         </Link>
 
-        <nav className="flex gap-6 text-sm text-neutral-500">
+        <nav className="flex gap-4 text-sm text-neutral-500 sm:gap-6">
           <Link
             href="/projects"
             className="transition-colors hover:text-neutral-900"
           >
             Projects
+          </Link>
+
+          <Link
+            href="/blogs"
+            className="transition-colors hover:text-neutral-900"
+          >
+            Blogs
           </Link>
 
           <Link

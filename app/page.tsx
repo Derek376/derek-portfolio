@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { notes } from "@/data/notes";
+import { blogs } from "@/data/blogs";
 import { projects } from "@/data/projects";
 
 export default function Home() {
@@ -139,49 +139,69 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="notes" className="py-24">
+        <section id="blogs" className="py-24">
           <div className="mb-12">
             <p className="mb-3 text-sm text-neutral-500">
-              Things I&apos;m learning
+              Short reads
             </p>
 
-            <h2 className="text-3xl font-semibold tracking-tight">Notes</h2>
+            <h2 className="text-3xl font-semibold tracking-tight">Blogs</h2>
           </div>
 
           <div className="border-t border-neutral-200">
-            {notes.map((note) => (
+            {blogs.map((blog) => (
               <article
-                key={note.title}
+                key={blog.title}
                 className="grid gap-3 border-b border-neutral-200 py-7 md:grid-cols-[2fr_1fr]"
               >
                 <div>
                   <h3 className="text-lg font-medium">
-                    {note.href ? (
+                    {blog.href ? (
                       <Link
-                        href={note.href}
+                        href={blog.href}
                         className="group inline-flex items-center gap-2 transition-colors hover:text-neutral-500"
                       >
-                        {note.title}
+                        {blog.title}
 
                         <span className="text-neutral-400 transition-transform group-hover:translate-x-1">
                           →
                         </span>
                       </Link>
                     ) : (
-                      note.title
+                      blog.title
                     )}
                   </h3>
 
                   <p className="mt-2 text-sm text-neutral-500">
-                    {note.category}
+                    {blog.category}
                   </p>
                 </div>
 
                 <p className="text-sm text-neutral-500 md:text-right">
-                  {note.date}
+                  {blog.date}
                 </p>
               </article>
             ))}
+          </div>
+        </section>
+
+        <section id="notes" className="py-24">
+          <div className="grid gap-10 border-t border-neutral-200 pt-16 md:grid-cols-[1fr_2fr]">
+            <h2 className="text-3xl font-semibold tracking-tight">Notes</h2>
+
+            <div className="max-w-2xl">
+              <p className="text-lg leading-8 text-neutral-600">
+                Longer learning records where I work through topics in more
+                detail.
+              </p>
+
+              <Link
+                href="/notes"
+                className="mt-8 inline-block border-b border-neutral-300 pb-1 text-sm transition-colors hover:border-neutral-900"
+              >
+                View notes →
+              </Link>
+            </div>
           </div>
         </section>
 
