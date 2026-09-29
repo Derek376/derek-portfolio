@@ -19,11 +19,25 @@ export default function Home() {
               Hi, I&apos;m Derek.
             </h1>
 
-            <p className="mt-7 max-w-2xl text-lg leading-8 text-neutral-600 sm:text-xl">
-              I&apos;m interested in building reliable software, especially
-              backend systems, distributed applications, and practical AI
-              projects.
-            </p>
+            <div className="mt-7 max-w-2xl space-y-4 text-lg leading-8 text-neutral-600 sm:text-xl">
+              <p>
+                I&apos;m an MSc student at University College Dublin interested
+                in backend and full-stack software development.
+              </p>
+
+              <p>
+                I enjoy building practical applications, exploring how modern
+                systems work, and continuously learning new technologies —
+                currently with a growing focus on AI.
+              </p>
+            </div>
+
+            <Link
+              href="/about"
+              className="mt-8 inline-block border-b border-neutral-300 pb-1 text-sm transition-colors hover:border-neutral-900"
+            >
+              Learn more about me →
+            </Link>
           </div>
         </section>
 
