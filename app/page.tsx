@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const projects = [
   {
     title: "E-Shop",
@@ -16,6 +18,25 @@ const projects = [
     description:
       "A web application built around Dublin Bikes data, with external API integration, mapping, predictive features, and automated testing.",
     technologies: "Python · Flask · MySQL",
+  },
+];
+
+const notes = [
+  {
+    title: "Understanding Asynchronous Messaging with RabbitMQ",
+    category: "Distributed Systems",
+    date: "Sep 2026",
+    href: "/notes/rabbitmq",
+  },
+  {
+    title: "Proxy vs Reverse Proxy: A Simple Mental Model",
+    category: "Computer Networks",
+    date: "Sep 2026",
+  },
+  {
+    title: "How I Think About BFS",
+    category: "Algorithms",
+    date: "Sep 2026",
   },
 ];
 
@@ -93,6 +114,52 @@ export default function Home() {
 
                 <p className="max-w-xl leading-7 text-neutral-600">
                   {project.description}
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section id="notes" className="py-24">
+          <div className="mb-12">
+            <p className="mb-3 text-sm text-neutral-500">
+              Things I&apos;m learning
+            </p>
+
+            <h2 className="text-3xl font-semibold tracking-tight">Notes</h2>
+          </div>
+
+          <div className="border-t border-neutral-200">
+            {notes.map((note) => (
+              <article
+                key={note.title}
+                className="grid gap-3 border-b border-neutral-200 py-7 md:grid-cols-[2fr_1fr]"
+              >
+                <div>
+                  <h3 className="text-lg font-medium">
+                    {note.href ? (
+                      <Link
+                        href={note.href}
+                        className="group inline-flex items-center gap-2 transition-colors hover:text-neutral-500"
+                      >
+                        {note.title}
+
+                        <span className="text-neutral-400 transition-transform group-hover:translate-x-1">
+                          →
+                        </span>
+                      </Link>
+                    ) : (
+                      note.title
+                    )}
+                  </h3>
+
+                  <p className="mt-2 text-sm text-neutral-500">
+                    {note.category}
+                  </p>
+                </div>
+
+                <p className="text-sm text-neutral-500 md:text-right">
+                  {note.date}
                 </p>
               </article>
             ))}
