@@ -35,20 +35,23 @@ export const tableProject = {
   ],
 };
 
+export const dublinBikesProject = {
+  title: "Dublin Bikes",
+  slug: "dublin-bikes",
+  detailHref: "/projects/dublin-bikes",
+  description:
+    "A team-built Flask app for bike station availability, weather, and occupancy predictions. I focused on the backend and contributed to prediction work.",
+  technologies: "Python · Flask · MySQL · scikit-learn",
+  repositories: [
+    {
+      label: "Team repository",
+      href: "https://github.com/Derek376/dublin-bikes-webapp",
+    },
+  ],
+};
+
 export const projects: Project[] = [
   eShopProject,
   tableProject,
-  {
-    title: "Dublin Bikes",
-    slug: "dublin-bikes",
-    description:
-      "A team-built Flask app showing bike station availability, weather, historical trends, and occupancy predictions.",
-    technologies: "Python · Flask · MySQL · scikit-learn",
-    repositories: [
-      {
-        label: "Team repository",
-        href: "https://github.com/Derek376/dublin-bikes-webapp",
-      },
-    ],
-  },
+  dublinBikesProject,
 ];
