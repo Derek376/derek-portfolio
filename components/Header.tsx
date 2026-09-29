@@ -44,7 +44,7 @@ export default function Header() {
           </Link>
 
           <Link
-            href="/#about"
+            href="/about"
             className="transition-colors hover:text-neutral-900"
           >
             About
