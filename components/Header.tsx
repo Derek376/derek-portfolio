@@ -9,7 +9,7 @@ export default function Header() {
 
       <nav className="flex gap-6 text-sm text-neutral-500">
         <Link
-          href="/#projects"
+          href="/projects"
           className="transition-colors hover:text-neutral-900"
         >
           Projects

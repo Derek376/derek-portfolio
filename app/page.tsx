@@ -1,46 +1,8 @@
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-
-const projects = [
-  {
-    title: "E-Shop",
-    description:
-      "A full-stack e-commerce application with authentication, Stripe payments, transactional operations, continuous integration, and automated testing.",
-    technologies: "Java · Spring Boot · React · PostgreSQL",
-  },
-  {
-    title: "Tablé",
-    description:
-      "A team project where I focused on backend development, API design, external service integrations, and rate limiting.",
-    technologies: "Express · PostgreSQL · REST APIs",
-  },
-  {
-    title: "Dublin Bikes",
-    description:
-      "A web application built around Dublin Bikes data, with external API integration, mapping, predictive features, and automated testing.",
-    technologies: "Python · Flask · MySQL",
-  },
-];
-
-const notes = [
-  {
-    title: "Understanding Asynchronous Messaging with RabbitMQ",
-    category: "Distributed Systems",
-    date: "Sep 2026",
-    href: "/notes/rabbitmq",
-  },
-  {
-    title: "Proxy vs Reverse Proxy: A Simple Mental Model",
-    category: "Computer Networks",
-    date: "Sep 2026",
-  },
-  {
-    title: "How I Think About BFS",
-    category: "Algorithms",
-    date: "Sep 2026",
-  },
-];
+import { notes } from "@/data/notes";
+import { projects } from "@/data/projects";
 
 export default function Home() {
   return (
@@ -80,7 +42,22 @@ export default function Home() {
                 className="grid gap-4 border-b border-neutral-200 py-8 md:grid-cols-[1fr_2fr]"
               >
                 <div>
-                  <h3 className="text-lg font-medium">{project.title}</h3>
+                  <h3 className="text-lg font-medium">
+                    {project.slug === "e-shop" ? (
+                      <Link
+                        href={`/projects/${project.slug}`}
+                        className="group inline-flex items-center gap-2 transition-colors hover:text-neutral-500"
+                      >
+                        {project.title}
+
+                        <span className="text-neutral-400 transition-transform group-hover:translate-x-1">
+                          →
+                        </span>
+                      </Link>
+                    ) : (
+                      project.title
+                    )}
+                  </h3>
 
                   <p className="mt-2 text-sm text-neutral-500">
                     {project.technologies}
