@@ -1,8 +1,25 @@
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SkillIcon from "@/components/SkillIcon";
 import { blogs } from "@/data/blogs";
 import { projects } from "@/data/projects";
+
+const skills = [
+  { name: "java", label: "Java" },
+  { name: "spring", label: "Spring Boot" },
+  { name: "react", label: "React" },
+  { name: "node", label: "Node.js / Express" },
+  { name: "python", label: "Python" },
+  { name: "flask", label: "Flask" },
+  { name: "postgresql", label: "PostgreSQL" },
+  { name: "mysql", label: "MySQL" },
+  { name: "next", label: "Next.js" },
+  { name: "javascript", label: "JavaScript" },
+  { name: "typescript", label: "TypeScript" },
+  { name: "tailwind", label: "Tailwind CSS" },
+  { name: "docker", label: "Docker" },
+] as const;
 
 export default function Home() {
   return (
@@ -40,7 +57,11 @@ export default function Home() {
                 aria-label="GitHub"
                 className="flex h-10 w-10 items-center justify-center transition-colors hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
               >
-                <svg viewBox="0 0 16 16" className="h-5 w-5 fill-current" aria-hidden="true">
+                <svg
+                  viewBox="0 0 16 16"
+                  className="h-5 w-5 fill-current"
+                  aria-hidden="true"
+                >
                   <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.65 7.65 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
                 </svg>
               </a>
@@ -52,7 +73,11 @@ export default function Home() {
                 aria-label="LinkedIn"
                 className="flex h-10 w-10 items-center justify-center transition-colors hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
               >
-                <svg viewBox="0 0 16 16" className="h-5 w-5 fill-current" aria-hidden="true">
+                <svg
+                  viewBox="0 0 16 16"
+                  className="h-5 w-5 fill-current"
+                  aria-hidden="true"
+                >
                   <path d="M0 1.15C0 .52.53 0 1.18 0h13.64C15.47 0 16 .52 16 1.15v13.7c0 .63-.53 1.15-1.18 1.15H1.18C.53 16 0 15.48 0 14.85V1.15ZM4.75 13.4V6.17H2.34v7.23h2.41ZM3.55 5.18a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8ZM13.4 13.4V9.43c0-2.13-1.14-3.12-2.66-3.12a2.3 2.3 0 0 0-2.07 1.14V6.17H6.27c.03.85 0 7.23 0 7.23h2.4V9.36c0-.22.02-.43.08-.59.17-.43.54-.88 1.18-.88.83 0 1.16.63 1.16 1.56v3.95h2.31Z" />
                 </svg>
               </a>
@@ -79,6 +104,31 @@ export default function Home() {
             >
               Learn more about me →
             </Link>
+          </div>
+        </section>
+
+        <section id="skills" className="py-24" aria-labelledby="skills-heading">
+          <div className="mb-12">
+            <p className="mb-3 text-sm text-neutral-500">What I work with</p>
+
+            <h2
+              id="skills-heading"
+              className="text-3xl font-semibold tracking-tight"
+            >
+              Skills
+            </h2>
+          </div>
+
+          <div className="flex flex-wrap gap-2 border-t border-neutral-200 pt-8">
+            {skills.map((skill) => (
+              <div
+                key={skill.name}
+                className="inline-flex h-10 items-center gap-2 rounded-md border border-neutral-200 px-3 text-sm text-neutral-600 transition-colors hover:border-neutral-400 hover:text-neutral-900"
+              >
+                <SkillIcon name={skill.name} />
+                <span>{skill.label}</span>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -141,9 +191,7 @@ export default function Home() {
 
         <section id="blogs" className="py-24">
           <div className="mb-12">
-            <p className="mb-3 text-sm text-neutral-500">
-              Short reads
-            </p>
+            <p className="mb-3 text-sm text-neutral-500">Short reads</p>
 
             <h2 className="text-3xl font-semibold tracking-tight">Blogs</h2>
           </div>
