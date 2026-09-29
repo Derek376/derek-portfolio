@@ -7,9 +7,8 @@ import { projects } from "@/data/projects";
 export default function Home() {
   return (
     <main className="min-h-screen bg-white text-neutral-900">
+      <Header />
       <div className="mx-auto max-w-5xl px-6 sm:px-8">
-        <Header />
-
         <section className="flex min-h-[70vh] items-center">
           <div className="max-w-3xl">
             <p className="mb-5 text-sm text-neutral-500">

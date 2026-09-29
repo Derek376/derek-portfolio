@@ -8,9 +8,7 @@ export default function ProjectsLayout({
 }>) {
   return (
     <div className="min-h-screen bg-white text-neutral-900">
-      <div className="mx-auto max-w-5xl px-6 sm:px-8">
-        <Header />
-      </div>
+      <Header />
 
       {children}
 
