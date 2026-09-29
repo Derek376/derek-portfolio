@@ -1,3 +1,24 @@
+const projects = [
+  {
+    title: "E-Shop",
+    description:
+      "A full-stack e-commerce application with authentication, Stripe payments, transactional operations, continuous integration, and automated testing.",
+    technologies: "Java · Spring Boot · React · PostgreSQL",
+  },
+  {
+    title: "Tablé",
+    description:
+      "A team project where I focused on backend development, API design, external service integrations, and rate limiting.",
+    technologies: "Express · PostgreSQL · REST APIs",
+  },
+  {
+    title: "Dublin Bikes",
+    description:
+      "A web application built around Dublin Bikes data, with external API integration, mapping, predictive features, and automated testing.",
+    technologies: "Python · Flask · MySQL",
+  },
+];
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-white text-neutral-900">
@@ -46,6 +67,35 @@ export default function Home() {
               backend systems, distributed applications, and practical AI
               projects.
             </p>
+          </div>
+        </section>
+
+        <section id="projects" className="py-24">
+          <div className="mb-12">
+            <p className="mb-3 text-sm text-neutral-500">Selected work</p>
+
+            <h2 className="text-3xl font-semibold tracking-tight">Projects</h2>
+          </div>
+
+          <div className="border-t border-neutral-200">
+            {projects.map((project) => (
+              <article
+                key={project.title}
+                className="grid gap-4 border-b border-neutral-200 py-8 md:grid-cols-[1fr_2fr]"
+              >
+                <div>
+                  <h3 className="text-lg font-medium">{project.title}</h3>
+
+                  <p className="mt-2 text-sm text-neutral-500">
+                    {project.technologies}
+                  </p>
+                </div>
+
+                <p className="max-w-xl leading-7 text-neutral-600">
+                  {project.description}
+                </p>
+              </article>
+            ))}
           </div>
         </section>
       </div>
