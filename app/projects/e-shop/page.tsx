@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { eShopProject } from "@/data/projects";
 
 export default function EShopProject() {
   return (
@@ -18,13 +19,27 @@ export default function EShopProject() {
         </h1>
 
         <p className="mt-6 text-lg leading-8 text-neutral-600">
-          A full-stack e-commerce application built with Spring Boot, React, and
-          PostgreSQL.
+          A React storefront backed by a Spring Boot API for customer, seller,
+          and administrator workflows.
         </p>
 
         <p className="mt-5 text-sm text-neutral-500">
-          Java · Spring Boot · React · PostgreSQL · Stripe
+          {eShopProject.technologies}
         </p>
+
+        <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+          {eShopProject.repositories.map((repository) => (
+            <a
+              key={repository.href}
+              href={repository.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border-b border-neutral-300 pb-1 transition-colors hover:border-neutral-900"
+            >
+              {repository.label} repository ↗
+            </a>
+          ))}
+        </div>
       </header>
 
       <div className="mt-16 space-y-14 text-[17px] leading-8 text-neutral-700">
@@ -34,35 +49,36 @@ export default function EShopProject() {
           </h2>
 
           <p>
-            E-Shop is a full-stack e-commerce application that I worked on
-            during my studies. The project gave me experience connecting a
-            frontend application to a Spring Boot backend and a relational
-            database.
+            The frontend covers product discovery, cart and checkout, order
+            history, and separate seller and administrator dashboards. The API
+            manages authentication, catalogue data, orders, and payments.
           </p>
         </section>
 
         <section>
           <h2 className="mb-4 text-2xl font-semibold tracking-tight text-neutral-900">
-            What I worked on
+            Engineering decisions
           </h2>
 
           <p>
-            The application includes user authentication, product and order
-            workflows, Stripe payments, transactional operations, continuous
-            integration, and automated testing.
+            Authentication uses an HTTP-only cookie and CSRF protection. The
+            server calculates checkout totals from the cart, verifies Stripe
+            payments before creating orders, and locks product rows while
+            updating stock. Dashboard sorting and pagination live in the URL
+            so the view survives navigation and refreshes.
           </p>
         </section>
 
         <section>
           <h2 className="mb-4 text-2xl font-semibold tracking-tight text-neutral-900">
-            What I learned
+            Testing and delivery
           </h2>
 
           <p>
-            This project helped me understand how different parts of a
-            full-stack application fit together, especially the relationship
-            between REST APIs, database operations, frontend state, testing, and
-            external services.
+            The repositories include frontend and backend test suites and
+            GitHub Actions checks. The React app is deployed on Vercel, while
+            the API runs as a Docker service on Northflank with PostgreSQL on
+            Neon.
           </p>
         </section>
       </div>

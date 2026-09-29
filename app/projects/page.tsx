@@ -44,6 +44,19 @@ export default function ProjectsPage() {
               <p className="mt-2 text-sm text-neutral-500">
                 {project.technologies}
               </p>
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+                {project.repositories.map((repository) => (
+                  <a
+                    key={repository.href}
+                    href={repository.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-neutral-600 underline decoration-neutral-300 underline-offset-4 transition-colors hover:text-neutral-900"
+                  >
+                    {repository.label} ↗
+                  </a>
+                ))}
+              </div>
             </div>
 
             <p className="max-w-xl leading-7 text-neutral-600">

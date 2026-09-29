@@ -1,23 +1,41 @@
+export const eShopProject = {
+  title: "E-Shop",
+  slug: "e-shop",
+  description:
+    "A React storefront and Spring Boot API with role-based access, Stripe checkout, and server-side order validation.",
+  technologies: "Java · Spring Boot · React · PostgreSQL · Stripe",
+  repositories: [
+    { label: "Frontend", href: "https://github.com/Derek376/react-ecom" },
+    { label: "Backend", href: "https://github.com/Derek376/sb-ecom" },
+  ],
+};
+
 export const projects = [
-  {
-    title: "E-Shop",
-    slug: "e-shop",
-    description:
-      "A full-stack e-commerce application with authentication, Stripe payments, transactional operations, continuous integration, and automated testing.",
-    technologies: "Java · Spring Boot · React · PostgreSQL",
-  },
+  eShopProject,
   {
     title: "Tablé",
     slug: "table",
     description:
-      "A team project where I focused on backend development, API design, external service integrations, and rate limiting.",
-    technologies: "Express · PostgreSQL · REST APIs",
+      "A team-built dining reservation platform. I led the Express API and database work for bookings, offers, campaigns, and ETA checks.",
+    technologies: "Node.js · Express · PostgreSQL · REST APIs",
+    repositories: [
+      {
+        label: "Team repository",
+        href: "https://github.com/chukwuemekanwoke-jpg/comp47360-team2",
+      },
+    ],
   },
   {
     title: "Dublin Bikes",
     slug: "dublin-bikes",
     description:
-      "A web application built around Dublin Bikes data, with external API integration, mapping, predictive features, and automated testing.",
-    technologies: "Python · Flask · MySQL",
+      "A team-built Flask app showing bike station availability, weather, historical trends, and occupancy predictions.",
+    technologies: "Python · Flask · MySQL · scikit-learn",
+    repositories: [
+      {
+        label: "Team repository",
+        href: "https://github.com/Derek376/dublin-bikes-webapp",
+      },
+    ],
   },
 ];

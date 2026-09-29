@@ -1,12 +1,14 @@
+import Link from "next/link";
+
 export default function RabbitMQNote() {
   return (
     <article className="mx-auto max-w-3xl px-6 py-20 sm:px-8">
-      <a
+      <Link
         href="/"
         className="text-sm text-neutral-500 transition-colors hover:text-neutral-900"
       >
         ← Back
-      </a>
+      </Link>
 
       <header className="mt-16">
         <p className="text-sm text-neutral-500">
