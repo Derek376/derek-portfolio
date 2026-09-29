@@ -43,9 +43,9 @@ export default function Home() {
               >
                 <div>
                   <h3 className="text-lg font-medium">
-                    {project.slug === "e-shop" ? (
+                    {project.detailHref ? (
                       <Link
-                        href={`/projects/${project.slug}`}
+                        href={project.detailHref}
                         className="group inline-flex items-center gap-2 transition-colors hover:text-neutral-500"
                       >
                         {project.title}
