@@ -1,4 +1,6 @@
 import Link from "next/link";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 const projects = [
   {
@@ -44,34 +46,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white text-neutral-900">
       <div className="mx-auto max-w-5xl px-6 sm:px-8">
-        <header className="flex items-center justify-between py-8">
-          <a href="/" className="text-base font-semibold tracking-tight">
-            Derek
-          </a>
-
-          <nav className="flex gap-6 text-sm text-neutral-500">
-            <a
-              href="#projects"
-              className="transition-colors hover:text-neutral-900"
-            >
-              Projects
-            </a>
-
-            <a
-              href="#notes"
-              className="transition-colors hover:text-neutral-900"
-            >
-              Notes
-            </a>
-
-            <a
-              href="#about"
-              className="transition-colors hover:text-neutral-900"
-            >
-              About
-            </a>
-          </nav>
-        </header>
+        <Header />
 
         <section className="flex min-h-[70vh] items-center">
           <div className="max-w-3xl">
@@ -227,13 +202,7 @@ export default function Home() {
           </div>
         </section>
 
-        <footer className="border-t border-neutral-200 py-10">
-          <div className="flex flex-col gap-3 text-sm text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
-            <p>© 2026 Derek</p>
-
-            <p>Built with Next.js and TypeScript.</p>
-          </div>
-        </footer>
+        <Footer />
       </div>
     </main>
   );
