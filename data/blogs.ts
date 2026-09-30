@@ -8,11 +8,13 @@ export const blogs = [
   {
     title: "Proxy vs Reverse Proxy: A Simple Mental Model",
     category: "Computer Networks",
-    date: "Sep 2026",
+    date: "Nov 2025",
+    href: "/blogs/proxy",
   },
   {
-    title: "How I Think About BFS",
-    category: "Algorithms",
+    title: "Why Information Security Is More Than Passwords",
+    category: "Security Information",
     date: "Sep 2026",
+    href: "/blogs/security",
   },
 ];

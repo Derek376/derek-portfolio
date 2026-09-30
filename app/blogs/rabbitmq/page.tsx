@@ -19,37 +19,57 @@ export default function RabbitMQBlog() {
           Understanding Asynchronous Messaging with RabbitMQ
         </h1>
 
-        <p className="mt-6 text-lg leading-8 text-neutral-600">
-          A short introduction to asynchronous messaging, based on building a simple
-          producer-consumer system with RabbitMQ.
-        </p>
       </header>
 
-      <div className="mt-16 space-y-12 text-[17px] leading-8 text-neutral-700">
-        <section>
-          <h2 className="mb-4 text-2xl font-semibold tracking-tight text-neutral-900">
-            Why asynchronous messaging?
-          </h2>
+      <div className="mt-12 space-y-6 text-[17px] leading-8 text-neutral-700">
+        <p>
+          When I first learned about distributed systems, one thing that
+          confused me was why services sometimes communicate through message
+          queues instead of calling each other directly.
+        </p>
 
-          <p>
-            In a synchronous system, one service sends a request to another
-            service and waits for a response. This is simple, but it also means
-            the first service depends directly on the second service being
-            available and responding quickly.
-          </p>
-        </section>
+        <p>RabbitMQ helped make this idea much clearer.</p>
 
-        <section>
-          <h2 className="mb-4 text-2xl font-semibold tracking-tight text-neutral-900">
-            Where RabbitMQ fits
-          </h2>
+        <p>
+          In a traditional synchronous request, one service sends a request to
+          another service and waits for a response. This works well in many
+          cases, but it also means the two services depend on each other being
+          available at the same time.
+        </p>
 
-          <p>
-            RabbitMQ sits between the producer and the consumer. Instead of
-            calling the consumer directly, the producer sends a message to a
-            queue. The consumer can then process that message independently.
-          </p>
-        </section>
+        <p>
+          With asynchronous messaging, the producer sends a message to RabbitMQ
+          instead. A consumer can then receive and process that message
+          separately.
+        </p>
+
+        <p>A simple mental model is:</p>
+
+        <pre className="overflow-x-auto border-y border-neutral-200 py-4 font-mono text-sm text-neutral-900">
+          <code>Producer → RabbitMQ → Consumer</code>
+        </pre>
+
+        <p>
+          This can be useful for tasks such as sending emails, processing files,
+          handling background jobs, or communicating between microservices.
+        </p>
+
+        <p>
+          What I find most interesting is that RabbitMQ is not just about
+          creating a queue. It helps reduce direct dependencies between
+          different parts of a system.
+        </p>
+
+        <p>
+          Working with RabbitMQ also helped me better understand concepts such
+          as producers, consumers, message acknowledgements, queues, and
+          message brokers.
+        </p>
+
+        <p>
+          It was one of the first technologies that made distributed systems
+          feel less theoretical and more like something I could actually build.
+        </p>
       </div>
     </article>
   );
