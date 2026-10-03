@@ -13,82 +13,43 @@ export default function AboutPage() {
         <div className="max-w-2xl">
           <div className="space-y-6 text-lg leading-8 text-neutral-600">
             <p>
-              I&apos;m currently pursuing an MSc at University College Dublin,
-              where I&apos;m continuing to develop my knowledge of software
-              engineering, distributed systems, information security, and modern
-              application development.
+              This is my personal website, where I share things I find
+              interesting, random thoughts, and probably some stuff that nobody
+              asked for — but that's fine.
             </p>
 
             <p>
-              My main interest is software engineering, especially backend and
-              full-stack development. I enjoy understanding how different parts
-              of a system work together — from APIs and databases to frontend
-              interfaces and distributed services.
+              I'm the kind of person who genuinely enjoys learning new things.
+              It's one of the few things that can make me feel real excitement
+              and satisfaction. I find joy in the process of discovery and
+              understanding. There's a quote I really like: “Education is what
+              remains after you have forgotten what you learned in school.” I
+              think that describes quite well how I see learning.
             </p>
 
             <p>
-              Most of my experience so far comes from university and personal
-              projects. Through these projects, I&apos;ve worked with
-              technologies such as Java, Python, JavaScript/TypeScript, Flask,
-              databases, REST APIs, and modern web development tools. I
-              particularly enjoy the process of taking an idea, breaking it
-              into smaller technical problems, and gradually turning it into a
-              working application.
+              I have a few things I truly enjoy — coding, gaming, reading, and
+              having deep conversations. They might seem quite different, but to
+              me they all have something in common: they give me a chance to
+              step away from the repetitive and practical side of everyday life,
+              even just for a while.
             </p>
 
             <p>
-              Recently, I&apos;ve also become increasingly interested in AI and
-              how it can be integrated into real software products. I&apos;m
-              currently expanding my knowledge in this area and working towards
-              building AI-related projects alongside my existing software
-              engineering experience.
+              I sometimes feel it's quite impressive that we humans can live our
+              lives knowing that one day, inevitably, they will come to an end —
+              and still manage to care, create, learn, love, and find things
+              worth doing.
             </p>
 
             <p>
-              Outside of individual technologies, I care about becoming a better
-              problem solver. I regularly practise data structures and
-              algorithms, explore new tools, and try to understand not only how
-              to use a technology, but also why it works the way it does.
+              So I guess my philosophy is pretty simple: don't spend too much of
+              your life worrying about trivial things. Focus on what truly
+              matters to you and pursue it with passion. Find something you
+              genuinely enjoy, keep doing it, and see where it takes you.
             </p>
 
-            <p>
-              I&apos;m currently preparing for graduate and junior software
-              engineering opportunities, particularly roles involving backend,
-              full-stack, or general software development.
-            </p>
-
-            <p>
-              I&apos;m always interested in learning, building, and working on
-              problems that help me become a better engineer.
-            </p>
-          </div>
-
-          <div className="mt-10 flex flex-wrap gap-6 text-sm">
-            <a
-              href="https://github.com/Derek376"
-              target="_blank"
-              rel="noreferrer"
-              className="border-b border-neutral-300 pb-1 transition-colors hover:border-neutral-900"
-            >
-              GitHub ↗
-            </a>
-
-            <a
-              href="https://www.linkedin.com/in/yangliu123/"
-              target="_blank"
-              rel="noreferrer"
-              className="border-b border-neutral-300 pb-1 transition-colors hover:border-neutral-900"
-            >
-              LinkedIn ↗
-            </a>
-
-            <a
-              href="/cv.pdf"
-              target="_blank"
-              className="border-b border-neutral-300 pb-1 transition-colors hover:border-neutral-900"
-            >
-              CV ↗
-            </a>
+            <p>Good luck, my friend.</p>
           </div>
         </div>
       </div>
