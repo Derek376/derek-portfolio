@@ -36,6 +36,16 @@ const publishedLessons: Record<string, { description: string; sections: LessonSe
     description: "Can similarity be calculated? An introduction to vector addition, the dot product and cosine similarity.",
     sections: operationsSections,
   },
+  "math-03-matrix": {
+    description: "Each layer of a neural network turns one collection of numbers into another. How can we represent that transformation?",
+    sections: [
+      { id: "recipe-table", title: "Many rules, one table" },
+      { id: "matrix-vector-product", title: "One dot product per row" },
+      { id: "dimensions", title: "From n dimensions to m dimensions" },
+      { id: "summary", title: "What you have discovered" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
 };
 
 function lesson(number: string, slug: string, title: string): CourseLesson {

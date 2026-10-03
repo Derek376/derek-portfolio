@@ -4,9 +4,14 @@ import { notFound } from "next/navigation";
 import CourseFrame from "@/components/notes/CourseFrame";
 import VectorLesson from "@/content/notes/llm/math-01-vector.mdx";
 import OperationsLesson from "@/content/notes/llm/math-02-ops.mdx";
+import MatrixLesson from "@/content/notes/llm/math-03-matrix.mdx";
 import { courseChapters, courseLessons } from "@/data/llm-course";
 
-const lessonContent = { "math-01-vector": VectorLesson, "math-02-ops": OperationsLesson };
+const lessonContent = {
+  "math-01-vector": VectorLesson,
+  "math-02-ops": OperationsLesson,
+  "math-03-matrix": MatrixLesson,
+};
 type Props = { params: Promise<{ lesson: string }> };
 
 export const dynamicParams = false;

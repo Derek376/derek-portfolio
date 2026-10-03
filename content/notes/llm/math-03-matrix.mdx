@@ -1,0 +1,88 @@
+import { RecipeMatrix, MatrixVectorProduct, MatrixDimensions } from "@/components/notes/MatrixFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { matrixQuiz } from "@/data/matrix-lesson";
+
+<h2 id="recipe-table">1. Many rules, one table</h2>
+
+Put mathematics aside for a moment. Imagine you have taken over a **bubble tea shop**. Your menu has three signature drinks, each with its own recipe using the same four ingredients: **tea, milk, sugar and pearls**.
+
+Here are the recipes, with numbers representing portions:
+
+- **Pearl milk tea:** 2 portions of tea + 1 of milk + 0 of sugar + 3 of pearls.
+- **Milk pudding:** 0 portions of tea + 4 of milk + 1 of sugar + 2 of pearls.
+- **Traditional sweet tea:** 1 portion of tea + 0 of milk + 3 of sugar + 1 of pearls.
+
+Today you are buying ingredients. Let the price per portion of each ingredient be `x₁`, `x₂`, `x₃` and `x₄`. You want to know immediately: **how much does each drink cost to make?**
+
+The calculation is simple. Use the portions in each recipe as weights and take a weighted sum of the ingredient prices:
+
+```text
+Pearl milk tea:        y₁ = 2x₁ + 1x₂ + 0x₃ + 3x₄
+Milk pudding:         y₂ = 0x₁ + 4x₂ + 1x₃ + 2x₄
+Traditional sweet tea: y₃ = 1x₁ + 0x₂ + 3x₃ + 1x₄
+```
+
+Three drinks give us three weighted sums. The weights are simply the quantities of each ingredient in the recipes. In practice, there might be hundreds of products and hundreds of ingredients. A neural network can have millions of weights.
+
+Rather than writing each formula separately, mathematicians arrange all the recipe quantities into **a rectangular table**, called a **matrix**.
+
+**A recipe table is a matrix.**
+
+<RecipeMatrix />
+
+We describe a matrix's size as `m × n`: **m rows** — the number of drinks here, or the number of outputs — and **n columns** — the number of ingredients, or the number of inputs. In this example, `m = 3` and `n = 4`.
+
+Keep this picture in mind: **one recipe per row, one ingredient per column**. We can return to this table to understand the matrix operations that follow.
+
+<h2 id="matrix-vector-product">2. Matrix times vector: one dot product per row</h2>
+
+Continue with the bubble tea shop. Suppose today's prices per portion are: tea 1 yuan, milk 2 yuan, sugar 1 yuan, and pearls 0 yuan — the pearls are free as part of a promotion. Write these prices as the column vector **x**, with components `[1, 2, 1, 0]`.
+
+To calculate the costs of all three drinks at once, multiply **Wx**. This means: **take the dot product of each row of W — each recipe — with x — the ingredient prices — and collect the results in a cost vector**. We learned the dot product in the previous lesson: multiply corresponding components and add them.
+
+<MatrixVectorProduct />
+
+The results are **4 yuan for pearl milk tea, 9 yuan for milk pudding, and 4 yuan for traditional sweet tea**. One matrix multiplication calculates the costs of the entire menu together.
+
+This is what makes matrices useful: **they turn “calculate many weighted sums at once” into a single operation**. Each neural network layer uses this operation, with a much larger table of weights. A complete layer can also add a bias and apply an activation function; here we are focusing on the matrix–vector multiplication.
+
+<ThoughtExercise question="W is a 3 × 4 matrix. Why must x have four components, rather than three or five?">
+
+Each column of W corresponds to one component of x. They must **line up** to calculate a dot product. If W has n columns, x must have n components; otherwise, we cannot pair the positions one by one, and the multiplication is not defined. The general rule is: **an m × n matrix multiplies an n-dimensional vector**, producing an m-dimensional vector.
+
+</ThoughtExercise>
+
+<h2 id="dimensions">3. From n dimensions to m dimensions</h2>
+
+There is one central rule for matrix–vector multiplication. Remember the shapes:
+
+```text
+W (m × n) × x (n × 1) = y (m × 1)
+```
+
+<MatrixDimensions />
+
+Two points matter:
+
+- **The columns must match the input:** if W has n columns, x must have n components. A mismatch means the product cannot be calculated.
+- **The rows determine the output:** if W has m rows, y has m components. A matrix can map an n-dimensional input space to an m-dimensional output space.
+
+This ability to move “from one number of dimensions to another” is central to the next lesson, **What is a linear transformation?** A matrix is more than a calculation tool. Geometrically, it represents a **transformation of space**, such as rotation, scaling, compression or stretching.
+
+<h2 id="summary">4. What you have discovered</h2>
+
+> **The takeaway.** A matrix neatly arranges **many sets of weights**: each row is a set of coefficients, and each column corresponds to one input. Multiplying a matrix by a vector, **Wx**, means **taking the dot product of each row with x**. The m rows produce m results, forming an m-dimensional output vector. The dimension rule is `W (m × n) × x (n × 1) = y (m × 1)`: the inner dimensions must match, and the outer dimensions determine the result.
+
+**What you have discovered in this lesson:**
+
+- **Matrix:** an `m × n` table of numbers with m rows and n columns, organising multiple sets of coefficients into one object.
+- **Matrix–vector multiplication:** Wx takes the dot product of each row with x, calculating several weighted sums at once.
+- **Dimension rule:** `(m × n) × (n × 1) = (m × 1)`. W turns an n-dimensional input into an m-dimensional output.
+- **Matching inner dimensions:** the number of columns of W must equal the number of components of x, so that the dot products can line up.
+
+<h2 id="quiz">Check your understanding</h2>
+
+Choose an answer and select “Submit answer” to see the correct option and an explanation.
+
+<LessonQuiz questions={matrixQuiz} />
