@@ -2,6 +2,7 @@ import { SizeNumberLine, AnimalPlane } from "@/components/notes/VectorFigures";
 import AnimalMap from "@/components/notes/AnimalMap";
 import LessonQuiz from "@/components/notes/LessonQuiz";
 import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import { vectorQuiz } from "@/data/vector-lesson";
 
 <h2 id="the-problem">1. An awkward question</h2>
 
@@ -96,4 +97,4 @@ But how exactly should we calculate “distance”? Apart from distance, are the
 
 Now that you have finished the lesson, check the main ideas. Choose an answer and select “Submit answer” to see the correct option and an explanation.
 
-<LessonQuiz />
+<LessonQuiz questions={vectorQuiz} />

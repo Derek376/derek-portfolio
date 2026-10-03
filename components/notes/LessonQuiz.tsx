@@ -1,21 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { vectorQuiz } from "@/data/vector-lesson";
+import { useId, useState } from "react";
 
-export default function LessonQuiz() {
+type QuizQuestion = {
+  question: string;
+  options: string[];
+  answer: number;
+  explanation: string;
+};
+
+export default function LessonQuiz({ questions }: { questions: QuizQuestion[] }) {
+  const quizId = useId();
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitted, setSubmitted] = useState<Record<number, boolean>>({});
 
   return (
     <div className="space-y-8">
-      {vectorQuiz.map((question, index) => (
+      {questions.map((question, index) => (
         <fieldset key={question.question} className="border-t border-neutral-200 pt-6">
           <legend className="pr-2 font-medium text-neutral-900">{index + 1}. {question.question}</legend>
           <div className="mt-4 space-y-3">
             {question.options.map((option, optionIndex) => (
               <label key={option} className="flex cursor-pointer items-start gap-3 text-sm leading-6">
-                <input type="radio" name={`vector-question-${index}`} value={optionIndex} checked={answers[index] === optionIndex} onChange={() => {
+                <input type="radio" name={`${quizId}-question-${index}`} value={optionIndex} checked={answers[index] === optionIndex} onChange={() => {
                   setAnswers({ ...answers, [index]: optionIndex });
                   setSubmitted({ ...submitted, [index]: false });
                 }} className="mt-1.5 accent-neutral-900" />

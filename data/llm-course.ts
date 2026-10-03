@@ -3,6 +3,7 @@ export type CourseLesson = {
   number: string;
   slug: string;
   title: string;
+  description: string;
   available: boolean;
   sections: LessonSection[];
 };
@@ -16,11 +17,33 @@ export const vectorSections: LessonSection[] = [
   { id: "quiz", title: "Check your understanding" },
 ];
 
+const operationsSections: LessonSection[] = [
+  { id: "distance-problem", title: "When distance gets it wrong" },
+  { id: "length-and-direction", title: "Why length interferes" },
+  { id: "dot-product", title: "The geometry behind the dot product" },
+  { id: "cosine-similarity", title: "Cosine similarity" },
+  { id: "vector-addition", title: "Arithmetic with meaning" },
+  { id: "summary", title: "What you have discovered" },
+  { id: "quiz", title: "Check your understanding" },
+];
+
+const publishedLessons: Record<string, { description: string; sections: LessonSection[] }> = {
+  "math-01-vector": {
+    description: "Computers only understand numbers. How can they tell that a cat and a tiger are more alike than a cat and a goldfish?",
+    sections: vectorSections,
+  },
+  "math-02-ops": {
+    description: "Can similarity be calculated? An introduction to vector addition, the dot product and cosine similarity.",
+    sections: operationsSections,
+  },
+};
+
 function lesson(number: string, slug: string, title: string): CourseLesson {
   return {
     number, slug, title,
-    available: slug === "math-01-vector",
-    sections: slug === "math-01-vector" ? vectorSections : [],
+    description: publishedLessons[slug]?.description ?? "",
+    available: Boolean(publishedLessons[slug]),
+    sections: publishedLessons[slug]?.sections ?? [],
   };
 }
 
@@ -85,3 +108,4 @@ export const courseChapters = [
 ];
 
 export const courseLessons = courseChapters.flatMap((chapter) => chapter.lessons);
+export const availableLessonCount = courseLessons.filter((lesson) => lesson.available).length;

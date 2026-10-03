@@ -1,0 +1,121 @@
+import { ArticleComparison, ProjectionFigure, DotProductSigns, CosineComparison, SemanticArithmetic } from "@/components/notes/VectorOperationFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { operationsQuiz } from "@/data/vector-operations";
+
+<h2 id="distance-problem">1. When distance gets it wrong</h2>
+
+Imagine you are building a program that finds similar articles. Represent each article's content with a word-frequency vector: how many times “AI” appears, how many times “data” appears, and so on. Consider these three articles:
+
+<ArticleComparison />
+
+- **Article A** (8 occurrences of “AI”, 6 of “data”): a detailed article discussing AI and data, around 3,000 Chinese characters long.
+- **Article B** (2 occurrences of “AI”, 1 of “data”): similar content to A, but a short summary, around 800 Chinese characters long.
+- **Article C** (1 occurrence of “AI”, 7 of “data”): mostly about databases, with occasional mentions of AI.
+
+Intuitively, A and B are the most alike: the same topic, with different lengths. Let us measure similarity in the most natural way: **how far apart the two points are on the diagram**. The Pythagorean theorem is enough. Find the horizontal and vertical differences; the hypotenuse gives the distance:
+
+```text
+distance(A, B) = √((8 − 2)² + (6 − 1)²)
+               = √(36 + 25) ≈ 7.8
+
+distance(A, C) = √((8 − 1)² + (6 − 7)²)
+               = √(49 + 1) ≈ 7.1
+```
+
+According to this calculation, **A and C are closer**. A long article about AI seems more similar to a database article that barely mentions AI than to a summary on the same topic. That is clearly the wrong result for this task.
+
+<h2 id="length-and-direction">2. Why length interferes</h2>
+
+**Why did distance fail?** Draw A, B and C as arrows starting at the origin, and the answer becomes clear. A and B point in **very similar directions** — both towards “AI and data” — but B is shorter. C points in a different direction, closer to the “data” axis.
+
+Straight-line distance measures **how far apart the arrow tips are**, so the short length of B distorts the comparison. For this task, similarity of content should depend on **the arrows' directions**, rather than their lengths.
+
+<ArticleComparison arrows />
+
+<ThoughtExercise question="Ignore length and use only direction. Can you think of a similarity measure that looks only at direction? Pause and think for 30 seconds.">
+
+Use the **angle** between two vectors to measure similarity: the smaller the angle, the more closely their directions align, and the more similar they are. The angle between A and B is about 10°, while the angle between A and C is about 45°. The comparison now matches our intuition. One question remains: how do we calculate the angle?
+
+</ThoughtExercise>
+
+<h2 id="dot-product">3. The geometry behind the dot product</h2>
+
+To calculate the angle, first meet a new tool: the **dot product**. Its calculation is simple: multiply corresponding components, then add the results:
+
+```text
+a · b = a₁b₁ + a₂b₂ + … + aₙbₙ
+```
+
+This formula is easy to remember, but its **geometric meaning** matters more. Imagine projecting the tip of vector **b** perpendicularly onto the line containing vector **a**. The signed distance from the origin to that point is **the projection of b in the direction of a**:
+
+<ProjectionFigure />
+
+This gives us an intuitive interpretation of the dot product: **how closely do the two vectors align?** The more of b points along a, the larger their dot product is.
+
+<DotProductSigns />
+
+<ThoughtExercise question="A neuron calculates w · x. What does that mean geometrically?">
+
+`w · x` equals the projection of the input vector **x** in the direction of the weight vector **w**, multiplied by `|w|`. A larger projection means the input aligns more closely with the direction preferred by this neuron, producing a larger dot-product response. If x and w are perpendicular, their dot product is zero. This is the geometry behind a neuron's selective response. Here we are considering the dot-product calculation alone, before adding a bias or applying an activation function.
+
+</ThoughtExercise>
+
+<h2 id="cosine-similarity">4. Cosine similarity</h2>
+
+From the geometric dot-product formula, we can isolate `cos θ`:
+
+```text
+a · b = |a| |b| cos θ
+
+cos θ = (a · b) / (|a| |b|)
+```
+
+This value is called **cosine similarity**. Dividing by the lengths of both vectors removes the influence of length, leaving direction. For non-zero vectors, it ranges from −1 to 1:
+
+- **1:** exactly the same direction — fully aligned.
+- **0:** perpendicular directions — no directional alignment.
+- **−1:** opposite directions — fully opposed.
+
+<CosineComparison />
+
+This is a widely used tool for measuring similarity in AI. Search engines, recommendation systems and semantic search can compare text vectors using cosine similarity rather than straight-line distance.
+
+<h2 id="vector-addition">5. Vector addition: arithmetic with meaning</h2>
+
+Vectors can also be added and subtracted. The rule is simple: add or subtract corresponding components:
+
+```text
+[a₁, a₂, …] + [b₁, b₂, …] = [a₁ + b₁, a₂ + b₂, …]
+```
+
+Geometrically, add two vectors by placing the tail of the second arrow at the tip of the first. This is the **parallelogram rule**. In AI, this simple operation leads to a remarkable result.
+
+When neural networks learn word vectors from large amounts of text, researchers have found relationships such as:
+
+```text
+vector(king) − vector(man) + vector(woman) ≈ vector(queen)
+```
+
+<SemanticArithmetic />
+
+What does this mean? **Relationships between words can be encoded as directions in vector space.** “Man → woman” corresponds to an offset, and “commoner → royalty” corresponds to another. These offsets can combine independently, leading approximately to the expected result.
+
+Lesson 15, on word vectors, will explain how these representations are learned. For now, remember that vector addition and subtraction can perform arithmetic on **meaning**.
+
+<h2 id="summary">6. What you have discovered</h2>
+
+> **The takeaway.** Straight-line distance measures “how far apart the tips are”; cosine similarity measures “how closely the directions align”. When a vector's **length is irrelevant** — for example, when word counts grow with article length — **cosine similarity** removes that influence. The dot product has a geometric meaning: one vector's length multiplied by the other's signed **projection** onto its direction. Vector subtraction can also express analogies such as “king − man + woman ≈ queen”, turning semantic relationships into offsets we can calculate.
+
+**What you have discovered in this lesson:**
+
+- **The blind spot of straight-line distance:** vectors with similar directions but different lengths can be farther apart than vectors with different directions.
+- **Dot product:** `a · b = Σ aᵢbᵢ = |a| |b| cos θ`. Geometrically, it is the length of a multiplied by the projection of b onto a's direction.
+- **Cosine similarity:** `cos θ = (a · b) / (|a| |b|)`. It removes the influence of length and compares direction.
+- **Vector addition:** relationships between meanings can support arithmetic — “king − man + woman ≈ queen”.
+
+<h2 id="quiz">Check your understanding</h2>
+
+Choose an answer and select “Submit answer” to see the correct option and an explanation.
+
+<LessonQuiz questions={operationsQuiz} />

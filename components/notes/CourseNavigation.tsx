@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { courseChapters } from "@/data/llm-course";
+import { availableLessonCount, courseChapters } from "@/data/llm-course";
 
 export default function CourseNavigation({ currentSlug }: { currentSlug?: string }) {
   return (
@@ -9,7 +9,7 @@ export default function CourseNavigation({ currentSlug }: { currentSlug?: string
           From vectors to Transformers
         </Link>
         <p className="mt-2 text-xs leading-5 text-neutral-500">
-          Lesson 01 is available. More lessons will follow.
+          {availableLessonCount} lessons are available. More lessons will follow.
         </p>
       </div>
 
