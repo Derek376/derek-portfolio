@@ -1,0 +1,99 @@
+import { SizeNumberLine, AnimalPlane } from "@/components/notes/VectorFigures";
+import AnimalMap from "@/components/notes/AnimalMap";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+
+<h2 id="the-problem">1. An awkward question</h2>
+
+Imagine you are writing a program that should answer this question:
+
+> “Of these three animals — a cat, a tiger and a goldfish — which two are most alike?”
+
+You immediately say: the cat and the tiger. Your reasons might be “they are both felines”, “they look alike”, or “they both pounce on prey”. But here is the problem: **a computer does not understand “feline” or “look alike”. It only understands numbers.** You cannot put a cat inside a CPU; you can only give it numbers.
+
+<ThoughtExercise question="If you could only use numbers to describe an animal to a computer, how would you do it? Before scrolling down, really think about it for 30 seconds.">
+
+A natural idea is to choose a **measurable attribute** and turn each animal into a number. For example, “size”: a goldfish is small, a cat is not very big, and a tiger is large. Once we have numbers, we can subtract them; once we can subtract them, we can compare “which animals are closer together”. Let us follow this line of thinking.
+
+</ThoughtExercise>
+
+<h2 id="one-number">2. The simplest solution: one number</h2>
+
+Give each animal a “size score” between 0 and 1. A goldfish scores `0.02`, a cat `0.25`, a dog `0.45`, a crocodile `0.50` and a tiger `0.90`. Put them on a number line:
+
+<SizeNumberLine />
+
+Something remarkable happens: **“how alike are they?” becomes something we can calculate.** The smaller the difference between two numbers, the more “alike” the animals are:
+
+```text
+distance(cat, tiger)   = |0.25 − 0.90| = 0.65
+distance(cat, goldfish) = |0.25 − 0.02| = 0.23
+```
+
+Wait — according to this algorithm, the cat and the **goldfish** are more alike? Something seems wrong, but do not throw the idea out just yet. This approach has done at least one important thing right: **it turned “comparing two things” into “comparing two numbers”.**
+
+We want to keep that idea. The real problem lies elsewhere.
+
+<h2 id="the-limit">3. When a dog resembles a crocodile</h2>
+
+Look again at the dog and the crocodile in Figure 1-1. According to our algorithm:
+
+```text
+distance(dog, crocodile) = |0.45 − 0.50| = 0.05
+```
+
+That is the smallest distance on the entire number line.
+
+> **The limitation of this approach.** In a world of “one number”, the dog and the crocodile are a perfect match — simply because they have similar weights. When we compress an animal into a single number, we lose too much information: temperament, habits, how dangerous it is… all of it disappears.
+
+<ThoughtExercise question="Without giving up the idea of describing things with numbers, what is the smallest improvement you can make?">
+
+If one number is not enough, use **two**. Keep the size score and add a “ferocity score”: a dog is gentle, `0.20`; a crocodile is fierce, `0.90`. Once each animal has two numbers, it is no longer a point on a number line, but a point on a **plane**.
+
+</ThoughtExercise>
+
+<h2 id="two-dimensions">4. From a number line to a plane</h2>
+
+Give each animal two numbers, `(size, ferocity)`. Use the first as its horizontal coordinate and the second as its vertical coordinate:
+
+<AnimalPlane />
+
+The dog and the crocodile are still close together on the horizontal axis, but the vertical axis pulls them apart. Using the Pythagorean theorem — we will leave the details for the next lesson — their distance changes from `0.05` to approximately `0.70`. Problem solved.
+
+Now notice what you have just done: you have written an animal as **an ordered collection of numbers**:
+
+```text
+dog = [0.45, 0.20]
+// The first number is size; the second is ferocity.
+```
+
+In mathematics, this collection of numbers is called a **vector**.
+
+The number of values is called its **dimensionality**. What we have just created is a two-dimensional vector. The same vector has three faces, all describing the same thing: **a list of numbers** (what the computer sees), **a point** on a plane (what we draw), and **an arrow** from the origin to that point (a particularly useful view for the operations in the next lesson).
+
+**Try it yourself: the animal map.** Drag the “?” and see which animal is closest.
+
+<AnimalMap />
+
+<h2 id="more-dimensions">5. Keep adding dimensions</h2>
+
+Two dimensions have limitations too. How do you distinguish a cat from a fox if their size and ferocity are similar? Add another dimension: “is it domesticated?” What about animals that fly or swim? Add more. Whenever you find something you cannot distinguish, **add another dimension**. Three numbers describe a point in three-dimensional space. With four numbers or a hundred, we can no longer draw it, but mathematics does not mind: **the distance formula still works, and we can still compare which things are more alike.**
+
+This is exactly what modern AI does. In large language models such as GPT, each word is represented as a vector — with not two dimensions, but thousands (GPT-3 used 12,288). Nobody manually assigns meanings such as “size” and “ferocity” to each dimension. The model **learns** these dimensions from enormous amounts of text. But the idea is the same as the one you have developed today:
+
+> **The takeaway.** A vector is a **“digital photograph”** of something: an ordered collection of numbers captures its features, turning the vague intuition of “how alike are they?” into **a distance we can calculate**.
+
+**What you have built in this lesson:**
+
+- **Vector:** an ordered collection of numbers, such as `[0.45, 0.20]`.
+- **Dimensionality:** the number of values; each dimension is a way of looking at something.
+- **The three faces of a vector:** a list of numbers, a point in space, and an arrow starting at the origin.
+- **Similarity as distance:** the closer two vectors are, the more alike the things they represent.
+
+But how exactly should we calculate “distance”? Apart from distance, are there other ways to measure similarity? What does adding two vectors mean — what kind of animal would “cat + dog” be? Take these questions with you to the next lesson.
+
+<h2 id="quiz">Check your understanding</h2>
+
+Now that you have finished the lesson, check the main ideas. Choose an answer and select “Submit answer” to see the correct option and an explanation.
+
+<LessonQuiz />

@@ -17,15 +17,16 @@ export default function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-50 border-b transition-colors duration-200 ${
+      className={`sticky top-0 z-50 border-b transition-all duration-300 ${
         isScrolled
-          ? "border-neutral-200/70 bg-white/80 backdrop-blur-md"
-          : "border-transparent bg-white"
+          ? "border-white/30 bg-white/60 shadow-sm backdrop-blur-xl backdrop-saturate-150"
+          : "border-transparent bg-white/80"
       }`}
     >
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-8 sm:px-8">
         <Link href="/" className="text-base font-semibold tracking-tight">
           Derek
+          <span className="brand-dot" aria-hidden="true" />
         </Link>
 
         <nav className="flex gap-4 text-sm text-neutral-500 sm:gap-6">

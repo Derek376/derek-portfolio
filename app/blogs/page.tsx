@@ -5,7 +5,7 @@ export default function BlogsPage() {
   return (
     <main className="mx-auto max-w-5xl px-6 py-20 sm:px-8">
       <div className="max-w-2xl">
-        <p className="text-sm text-neutral-500">Short reads</p>
+        <p className="accent-label text-sm">Short reads</p>
 
         <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
           Blogs

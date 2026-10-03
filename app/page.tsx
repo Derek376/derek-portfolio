@@ -28,12 +28,12 @@ export default function Home() {
       <div className="mx-auto max-w-5xl px-6 sm:px-8">
         <section className="flex min-h-[70vh] items-center">
           <div className="max-w-3xl">
-            <p className="mb-5 text-sm text-neutral-500">
+            <p className="accent-label mb-5 text-sm">
               MSc Student · University College Dublin
             </p>
 
             <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl">
-              Hi, I&apos;m Derek.
+              Hi, I&apos;m <span className="accent-text">Derek.</span>
             </h1>
 
             <div className="mt-7 max-w-2xl space-y-4 text-lg leading-8 text-neutral-600 sm:text-xl">
@@ -109,7 +109,7 @@ export default function Home() {
 
         <section id="skills" className="py-24" aria-labelledby="skills-heading">
           <div className="mb-12">
-            <p className="mb-3 text-sm text-neutral-500">What I work with</p>
+            <p className="accent-label mb-3 text-sm">What I work with</p>
 
             <h2
               id="skills-heading"
@@ -123,7 +123,7 @@ export default function Home() {
             {skills.map((skill) => (
               <div
                 key={skill.name}
-                className="inline-flex h-10 items-center gap-2 rounded-md border border-neutral-200 px-3 text-sm text-neutral-600 transition-colors hover:border-neutral-400 hover:text-neutral-900"
+                className="skill-tag inline-flex h-10 items-center gap-2 rounded-md border border-neutral-200 px-3 text-sm text-neutral-600 transition-colors"
               >
                 <SkillIcon name={skill.name} />
                 <span>{skill.label}</span>
@@ -134,7 +134,7 @@ export default function Home() {
 
         <section id="projects" className="py-24">
           <div className="mb-12">
-            <p className="mb-3 text-sm text-neutral-500">Selected work</p>
+            <p className="accent-label mb-3 text-sm">Selected work</p>
 
             <h2 className="text-3xl font-semibold tracking-tight">Projects</h2>
           </div>
@@ -191,7 +191,7 @@ export default function Home() {
 
         <section id="blogs" className="py-24">
           <div className="mb-12">
-            <p className="mb-3 text-sm text-neutral-500">Short reads</p>
+            <p className="accent-label mb-3 text-sm">Short reads</p>
 
             <h2 className="text-3xl font-semibold tracking-tight">Blogs</h2>
           </div>

@@ -4,7 +4,7 @@ export default function Footer() {
       <div className="flex flex-col gap-3 text-sm text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
         <p>© 2026 Derek</p>
 
-        <p>Built with Next.js and TypeScript.</p>
+        <p>Built with Next.js, TypeScript, and curiosity.</p>
       </div>
     </footer>
   );

@@ -40,5 +40,5 @@ type SkillIconProps = {
 export default function SkillIcon({ name }: SkillIconProps) {
   const Icon = icons[name];
 
-  return <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />;
+  return <Icon className="accent-text h-4 w-4 shrink-0" aria-hidden="true" />;
 }

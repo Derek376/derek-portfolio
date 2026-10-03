@@ -1,0 +1,51 @@
+.lesson-prose {
+  color: #525252;
+  font-size: 1.0625rem;
+  line-height: 1.9;
+}
+.lesson-prose > * + * { margin-top: 1.5rem; }
+.lesson-prose h2 {
+  margin-top: 4rem;
+  margin-bottom: 1.5rem;
+  scroll-margin-top: 8rem;
+  border-top: 1px solid #e5e5e5;
+  padding-top: 2rem;
+  color: #171717;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.4;
+}
+.lesson-prose strong { color: #262626; font-weight: 600; }
+.lesson-prose blockquote { border-left: 2px solid var(--accent-border); padding-left: 1.25rem; }
+.lesson-prose ul { list-style-type: disc; padding-left: 1.5rem; }
+.lesson-prose li + li { margin-top: 0.75rem; }
+.lesson-prose code { font-family: var(--font-geist-mono), monospace; font-size: 0.85em; color: #262626; }
+.lesson-prose pre { overflow-x: auto; border-block: 1px solid #e5e5e5; padding: 1rem 0; }
+.lesson-prose figure { margin-block: 2rem; }
+.lesson-prose figcaption { margin-top: 0.75rem; font-size: 0.875rem; line-height: 1.7; color: #737373; }
+.lesson-prose summary { cursor: pointer; font-size: 0.875rem; font-weight: 500; color: #262626; }
+.lesson-prose a { text-decoration: underline; text-underline-offset: 4px; }
+.lesson-prose .thought-exercise {
+  min-width: 0;
+  border: 1px dashed var(--accent-border);
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+.thought-exercise legend {
+  padding-inline: 0.75rem;
+  color: var(--accent);
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+}
+.thought-question { color: #262626; font-weight: 600; }
+.thought-exercise details { margin-top: 1.25rem; }
+.lesson-prose .thought-exercise summary { color: var(--accent); }
+.thought-answer {
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--accent-border);
+  padding-top: 1.25rem;
+}
+.thought-exercise .hide-answer,
+.thought-exercise details[open] .show-answer { display: none; }
+.thought-exercise details[open] .hide-answer { display: inline; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

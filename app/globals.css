@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --accent: #356b63;
+  --accent-soft: #edf5f2;
+  --accent-border: #b9d4cb;
 }
 
 @theme inline {
@@ -27,4 +30,50 @@ body {
 
 html {
   scroll-behavior: smooth;
+}
+
+::selection {
+  background: #d8ebe4;
+  color: #171717;
+}
+
+.accent-text,
+.accent-label {
+  color: var(--accent);
+}
+
+.brand-dot {
+  display: inline-block;
+  width: 0.375rem;
+  height: 0.375rem;
+  margin-left: 0.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+a:hover {
+  color: var(--accent);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+a[aria-current="page"],
+a[aria-current="location"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+a[aria-current="page"] {
+  background: var(--accent-soft);
+}
+
+.skill-tag:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
 }
