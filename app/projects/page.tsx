@@ -45,6 +45,16 @@ export default function ProjectsPage() {
                 {project.technologies}
               </p>
               <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+                {project.liveDemo && (
+                  <a
+                    href={project.liveDemo}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-neutral-600 underline decoration-neutral-300 underline-offset-4 transition-colors hover:text-neutral-900"
+                  >
+                    Live demo ↗
+                  </a>
+                )}
                 {project.repositories.map((repository) => (
                   <a
                     key={repository.href}
@@ -56,16 +66,6 @@ export default function ProjectsPage() {
                     {repository.label} ↗
                   </a>
                 ))}
-                {project.liveDemo && (
-                  <a
-                    href={project.liveDemo}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-neutral-600 underline decoration-neutral-300 underline-offset-4 transition-colors hover:text-neutral-900"
-                  >
-                    Live demo ↗
-                  </a>
-                )}
               </div>
             </div>
 

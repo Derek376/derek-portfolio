@@ -1,4 +1,5 @@
 import Link from "next/link";
+import EShopArchitecture from "@/components/projects/EShopArchitecture";
 import { eShopProject } from "@/data/projects";
 
 export default function EShopProject() {
@@ -28,6 +29,14 @@ export default function EShopProject() {
         </p>
 
         <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+          <a
+            href={eShopProject.liveDemo}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="border-b border-neutral-300 pb-1 transition-colors hover:border-neutral-900"
+          >
+            Live demo ↗
+          </a>
           {eShopProject.repositories.map((repository) => (
             <a
               key={repository.href}
@@ -39,14 +48,6 @@ export default function EShopProject() {
               {repository.label} repository ↗
             </a>
           ))}
-          <a
-            href={eShopProject.liveDemo}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="border-b border-neutral-300 pb-1 transition-colors hover:border-neutral-900"
-          >
-            Live demo ↗
-          </a>
         </div>
       </header>
 
@@ -61,6 +62,18 @@ export default function EShopProject() {
             history, and separate seller and administrator dashboards. The API
             manages authentication, catalogue data, orders, and payments.
           </p>
+        </section>
+
+        <section id="architecture" className="scroll-mt-32">
+          <h2 className="mb-4 text-2xl font-semibold tracking-tight text-neutral-900">
+            Architecture
+          </h2>
+          <p>
+            The React storefront communicates with a Spring Boot REST API.
+            Authentication uses an HTTP-only JWT cookie, with a CSRF token for
+            state-changing requests.
+          </p>
+          <EShopArchitecture />
         </section>
 
         <section>

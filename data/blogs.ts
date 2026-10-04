@@ -13,7 +13,7 @@ export const blogs = [
   },
   {
     title: "Why Information Security Is More Than Passwords",
-    category: "Security Information",
+    category: "Information Security",
     date: "Sep 2026",
     href: "/blogs/security",
   },
