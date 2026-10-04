@@ -1,0 +1,253 @@
+import { BlindDescent, MountainProfile, TangentSlope, PartialSlopes, DirectionalSlopes, GradientDescentPath } from "@/components/notes/GradientFigures";
+import { SecantLimit, BowlSurface } from "@/components/notes/GradientInteractiveFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { gradientQuiz } from "@/data/gradient-lesson";
+
+<h2 id="blindfolded-descent">1. Walking downhill blindfolded</h2>
+
+Put the mathematical symbols aside for a moment and imagine a situation.
+
+You are blindfolded, standing alone on a rolling hillside. Your task is to **reach the lowest point in a valley**. You cannot see the distant terrain, and you do not know where the bottom is or how far away it lies. All you can rely on is **what you feel under your feet**: probe the ground around you to find which directions lead uphill, which lead downhill, and how steep they are.
+
+How would you move? Most people think of the same approach:
+
+- Feel around for **the steepest local downhill direction**.
+- Take **a small step** in that direction.
+- Stop, feel again, and take another step. Repeat.
+
+This simple method captures the central idea behind training a neural network. You do not need a complete map to start making progress. In a smooth bowl, suitable small steps can approach the bottom. A more complicated landscape may have several valleys or flat points, so this local method does **not** promise to find the globally lowest point.
+
+<BlindDescent />
+
+The next four sections translate “**feel the slope under your feet**” into mathematics a computer can calculate. We will meet the **derivative**, **partial derivatives**, the **directional derivative**, and finally the **gradient**.
+
+<h2 id="derivative">2. The derivative: a curve's slope at one point</h2>
+
+Start with the simplest possible view. Step far enough back to represent the mountain's profile as **a function curve on a plane**. The horizontal coordinate $x$ gives your position; $h(x)$ gives the height there. The curve is a side view of the mountain.
+
+<MountainProfile />
+
+Looking at the whole picture gives us a bird's-eye view: we can spot a valley and see which way to walk. The person standing on the mountain does not have that view. They know only their current position and can move a little left or right to feel whether the ground rises or falls.
+
+The **slope at that point** translates this probing into mathematics:
+
+- A **positive** slope means the curve rises as $x$ increases. Moving right is uphill; moving left is locally downhill.
+- A **negative** slope means moving right is locally downhill.
+
+The sign tells you the direction; the magnitude tells you how steep the slope is. The question becomes: **how do we calculate a curve's slope at a particular point?**
+
+For a straight line, choose any two points and divide the vertical change by the horizontal change. That ratio is the same everywhere along the line. A curve bends, so there is no single slope that describes all its points. The mathematical tool for a curve's slope **at one point** is the **derivative**, written $h'(x)$ or $\frac{dh}{dx}$.
+
+Begin with two points on the curve. Stand at $x_0$, move by a small non-zero amount $\Delta x$, and arrive at $x_0+\Delta x$. The corresponding height change is:
+
+$$
+\Delta h=h(x_0+\Delta x)-h(x_0).
+$$
+
+The straight line connecting these two points is a **secant**. Its slope $\frac{\Delta h}{\Delta x}$ is an **average slope** over that interval, not yet the exact slope at $x_0$. A wider interval can give a poorer local approximation.
+
+<SecantLimit />
+
+Now let $\Delta x$ shrink towards zero. The second point approaches the first and, when the derivative exists, the secant's slope approaches the slope of the **tangent** at $x_0$. This gives the definition:
+
+$$
+h'(x_0)=\lim_{\Delta x\to0}\frac{\Delta h}{\Delta x}
+=\lim_{\Delta x\to0}\frac{h(x_0+\Delta x)-h(x_0)}{\Delta x}.
+$$
+
+The function must be defined around $x_0$. If this limit exists as a finite number, the function is **differentiable at that point**, and the limit is its derivative there. It can also be written $\left.\frac{dh}{dx}\right|_{x=x_0}$. If the limit does not exist, the function is not differentiable there.
+
+Notice the distinction: **the derivative at a point is one number**. If the function is differentiable throughout a region, assigning a slope to each position gives another function, the **derivative function**:
+
+$$
+h'(x)=\lim_{\Delta x\to0}\frac{h(x+\Delta x)-h(x)}{\Delta x}.
+$$
+
+For example, $h'(1)$ is one number, while $h'(x)$ describes slopes across the whole curve. In everyday mathematical language, both may be called “the derivative”; the context tells you which is meant. We usually differentiate first, then substitute the position we need.
+
+Let us apply the limit definition to a simple upward-opening parabola with just one minimum:
+
+$$
+h(x)=(x-4)^2.
+$$
+
+Its lowest point is at $x=4$. Without using a ready-made differentiation rule, expand the difference quotient:
+
+$$
+\begin{aligned}
+h'(x)
+&=\lim_{\Delta x\to0}\frac{[(x+\Delta x)-4]^2-(x-4)^2}{\Delta x}\\
+&=\lim_{\Delta x\to0}\frac{2(x-4)\Delta x+(\Delta x)^2}{\Delta x}\\
+&=\lim_{\Delta x\to0}\bigl[2(x-4)+\Delta x\bigr]\\
+&=2(x-4).
+\end{aligned}
+$$
+
+At $x=1$, substitute that position into the derivative function:
+
+$$
+\left.\frac{dh}{dx}\right|_{x=1}=h'(1)=2(1-4)=-6.
+$$
+
+The sign is negative: increasing $x$ lowers the height locally. The magnitude is $6$: the slope is fairly steep. One number describes the local downhill behaviour. **Move against the derivative**: to the right when it is negative, or to the left when it is positive. This concerns the local slope; a large step can still overshoot.
+
+<TangentSlope />
+
+<ThoughtExercise question="Without a derivative, how could you decide whether to go east or west? What is the drawback?">
+
+Try a small move in each direction and compare the heights. This is a numerical approximation to the slope. It requires additional function evaluations, and the size of the trial step affects its accuracy. In a high-dimensional model, probing every parameter separately is expensive. Derivatives give a principled way to calculate local sensitivity; later, backpropagation will make that calculation efficient.
+
+</ThoughtExercise>
+
+<h2 id="partial-derivatives">3. Partial derivatives: the mountain is two-dimensional</h2>
+
+A path that only lets you move east or west is an idealisation. On a real hillside you can move across a **two-dimensional ground plane**: east–west along $x$ and north–south along $y$. Height depends on both coordinates, so write it as $h(x,y)$.
+
+Consider this surface:
+
+$$
+h(x,y)=(x-4)^2+(y-2)^2.
+$$
+
+It is an upward-opening **bowl**. The bottom is the minimum; moving towards the edges increases the height. Rotate the surface below to see it from different angles.
+
+<BowlSurface />
+
+How can we measure its slope? A natural approach is to measure twice:
+
+- Keep your north–south coordinate fixed and move a little east or west.
+- Keep your east–west coordinate fixed and move a little north or south.
+
+A slope measured by **varying just one coordinate while holding the others fixed** is a **partial derivative**. We use $\partial$, rather than the single-variable $d$:
+
+$$
+\frac{\partial h}{\partial x}=\text{slope when only }x\text{ changes},\qquad
+\frac{\partial h}{\partial y}=\text{slope when only }y\text{ changes}.
+$$
+
+When differentiating with respect to $x$, treat $y$ as a constant. For the bowl:
+
+$$
+\frac{\partial h}{\partial x}=2(x-4),\qquad
+\frac{\partial h}{\partial y}=2(y-2).
+$$
+
+Suppose you are at $(1,5)$. Substituting gives:
+
+$$
+\begin{aligned}
+\frac{\partial h}{\partial x}(1,5)&=2(1-4)=-6,\\
+\frac{\partial h}{\partial y}(1,5)&=2(5-2)=6.
+\end{aligned}
+$$
+
+The east–west derivative is negative, so moving east is downhill. The north–south derivative is positive, so moving north is uphill and moving south is downhill.
+
+<PartialSlopes />
+
+We now have two numbers. But our real question is not only the slope along each axis: **what is the slope in any chosen direction, and which direction is steepest?**
+
+<h2 id="directional-derivative">4. The directional derivative: any direction you choose</h2>
+
+You need not restrict yourself to due east or due south. You might probe a direction such as $30^\circ$ south of east. The slope along a **specified direction** is its **directional derivative**.
+
+You do not have to measure every direction independently. For a **differentiable** function, the partial derivatives determine the slope in every direction. Express the direction as a **unit vector** $\mathbf{u}=(u_1,u_2)$, with $\lVert\mathbf{u}\rVert=1$. Then:
+
+$$
+D_{\mathbf{u}}h=\frac{\partial h}{\partial x}u_1+\frac{\partial h}{\partial y}u_2.
+$$
+
+That expression is the **dot product** from Lesson 2. Package the two partial derivatives as a vector and take its dot product with $\mathbf{u}$:
+
+$$
+D_{\mathbf{u}}h=
+\left(\frac{\partial h}{\partial x},\frac{\partial h}{\partial y}\right)\cdot\mathbf{u}.
+$$
+
+Recall the geometric interpretation:
+
+$$
+\mathbf{a}\cdot\mathbf{u}=\lVert\mathbf{a}\rVert\lVert\mathbf{u}\rVert\cos\theta
+=\lVert\mathbf{a}\rVert\cos\theta.
+$$
+
+Because $\mathbf{u}$ has unit length, the directional derivative is a **signed projection** of the slope vector onto that direction. At $(1,5)$, that vector is $(-6,6)$. Try several directions:
+
+<DirectionalSlopes />
+
+Due east and due south each give a slope of $-6$. The southeast **unit** direction combines them and gives $-6\sqrt2\approx-8.49$, a faster decrease per unit distance. Normalisation matters: comparing arbitrary vectors of different lengths would mix direction with step size.
+
+The longest positive projection occurs when the direction matches the slope vector. **That is the steepest uphill direction**. The most negative projection occurs in the opposite direction: steepest downhill.
+
+<ThoughtExercise question="Why does the slope vector point in the steepest uphill direction? Use the dot-product formula to explain it.">
+
+For a unit direction, $D_{\mathbf{u}}h=\lVert\mathbf{a}\rVert\cos\theta$. The maximum occurs when $\cos\theta=1$, so $\mathbf{u}$ points along $\mathbf{a}$. The minimum occurs when $\cos\theta=-1$, so it points against $\mathbf{a}$. If the slope vector is zero, all first-order directional derivatives are zero and there is no unique steepest direction.
+
+</ThoughtExercise>
+
+<h2 id="gradient">5. The gradient: steepest ascent as a vector</h2>
+
+The slope vector we have been using has a formal name: the **gradient**, written $\nabla h$ and pronounced “nabla h”:
+
+$$
+\nabla h=\left(\frac{\partial h}{\partial x},\frac{\partial h}{\partial y}\right).
+$$
+
+This is not a new calculation: it **packages the partial derivatives into one vector**. The previous section gives it two useful geometric meanings:
+
+- **Direction:** a non-zero gradient points towards the fastest local increase.
+- **Magnitude:** $\lVert\nabla h\rVert$ is the maximum directional derivative over unit directions.
+
+At $(1,5)$, $\nabla h=(-6,6)$ points northwest, the fastest uphill direction. To descend, move the other way: $-\nabla h=(6,-6)$, towards the southeast. The blindfolded walk becomes an update rule:
+
+$$
+\mathbf{x}_{\text{new}}=\mathbf{x}-\alpha\nabla h(\mathbf{x}).
+$$
+
+Here $\mathbf{x}$ denotes the whole position vector, not just the horizontal coordinate. The minus sign means “against the gradient”. The positive number $\alpha$ controls the step size; in machine learning it is called the **learning rate**. Repeating this update is **gradient descent**.
+
+<GradientDescentPath />
+
+The gradient answers “which direction is steepest here?” in one calculation. You do not need to probe every direction separately. However, “steepest” is a **local, first-order** description: the learning rate affects whether the next finite step actually lowers the height. An overly large step can overshoot or diverge.
+
+For this particular bowl, a step with $\alpha=0.2$ multiplies the displacement from the minimum by $0.6$ each time, so the plotted points approach $(4,2)$. More complicated functions may have local minima, maxima or saddle points. A zero gradient indicates a **stationary point**, not a guarantee of the best possible solution.
+
+<h2 id="neural-network-training">6. From hillsides to neural networks</h2>
+
+Return to AI. Training a neural network resembles the blindfolded walk with different names:
+
+- **Height** becomes the model's **loss**: how wrong its predictions are.
+- **Position** becomes the collection of **model parameters**.
+- **Steepest downhill direction** becomes the **negative loss gradient**.
+
+A hillside has two ground coordinates, $x$ and $y$. A large model can have billions of parameters $w_1,w_2,\ldots,w_n$. Each parameter has a partial derivative of the loss. Package all of them into a gradient and update them together:
+
+$$
+\nabla L(\mathbf{w})=
+\begin{bmatrix}
+\frac{\partial L}{\partial w_1}\\
+\frac{\partial L}{\partial w_2}\\
+\vdots\\
+\frac{\partial L}{\partial w_n}
+\end{bmatrix},\qquad
+\mathbf{w}_{\text{new}}=\mathbf{w}-\alpha\nabla L(\mathbf{w}).
+$$
+
+One update changes all the parameters using the local sensitivities of the loss. Suitable steps aim to reduce the loss. Questions about getting stuck, choosing a learning rate and calculating so many derivatives efficiently will return in **Gradient descent and optimisers (Lesson 12)** and **Backpropagation (Lesson 13)**.
+
+> **The takeaway.** A derivative measures local slope in one dimension. Partial derivatives measure it one coordinate at a time. A directional derivative gives the slope in any unit direction through a dot product. The gradient packages the partial derivatives into the direction of steepest local ascent. Updating parameters against it, $\mathbf{w}_{\text{new}}=\mathbf{w}-\alpha\nabla L(\mathbf{w})$, is a central mechanism of neural network training.
+
+**The concepts you have built step by step:**
+
+- **Derivative:** $\frac{dh}{dx}$ gives the exact slope at a point; its sign gives direction and its magnitude gives steepness.
+- **Partial derivative:** $\frac{\partial h}{\partial x}$ measures sensitivity to one coordinate while keeping the others fixed.
+- **Directional derivative:** $D_{\mathbf{u}}h=\nabla h\cdot\mathbf{u}$ measures the slope in a specified unit direction.
+- **Gradient:** $\nabla L$ collects all partial derivatives. It points uphill; its negative points downhill.
+- **Gradient descent:** $\mathbf{w}\leftarrow\mathbf{w}-\alpha\nabla L(\mathbf{w})$ updates every parameter using that local information.
+
+<h2 id="quiz">Check your understanding</h2>
+
+Choose an answer and select “Submit answer” to see the correct option and an explanation.
+
+<LessonQuiz questions={gradientQuiz} />

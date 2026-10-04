@@ -37,8 +37,8 @@ export default function AboutPage() {
             </p>
 
             <p>
-              Outside of coding, I enjoy gaming, music, reading, playing piano
-              and learning about things that are not always related to
+              Outside of coding, I enjoy gaming, music, reading, playing the
+              piano and learning about things that are not always related to
               technology. I also like writing notes about topics I’ve recently
               learned, because explaining something in simple words helps me
               understand it better.

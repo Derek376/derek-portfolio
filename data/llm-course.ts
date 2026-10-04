@@ -57,6 +57,18 @@ const publishedLessons: Record<string, { description: string; sections: LessonSe
       { id: "quiz", title: "Check your understanding" },
     ],
   },
+  "math-05-gradient": {
+    description: "How can you walk downhill blindfolded? From local slopes and derivatives to the gradient that guides neural network training.",
+    sections: [
+      { id: "blindfolded-descent", title: "Walking downhill blindfolded" },
+      { id: "derivative", title: "The derivative: slope at one point" },
+      { id: "partial-derivatives", title: "Partial derivatives: two dimensions" },
+      { id: "directional-derivative", title: "Slope in any direction" },
+      { id: "gradient", title: "The gradient: steepest ascent" },
+      { id: "neural-network-training", title: "From hillsides to neural networks" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
 };
 
 function lesson(number: string, slug: string, title: string): CourseLesson {
@@ -76,7 +88,7 @@ export const courseChapters = [
       lesson("02", "math-02-ops", "Common vector operations"),
       lesson("03", "math-03-matrix", "What is a matrix?"),
       lesson("04", "math-04-transform", "What is a linear transformation?"),
-      lesson("05", "math-04-gradient", "What is a gradient?"),
+      lesson("05", "math-05-gradient", "What is a gradient?"),
       lesson("06", "math-05-prob", "Probability and information"),
     ],
   },

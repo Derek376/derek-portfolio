@@ -6,6 +6,7 @@ import VectorLesson from "@/content/notes/llm/math-01-vector.mdx";
 import OperationsLesson from "@/content/notes/llm/math-02-ops.mdx";
 import MatrixLesson from "@/content/notes/llm/math-03-matrix.mdx";
 import TransformationLesson from "@/content/notes/llm/math-04-transform.mdx";
+import GradientLesson from "@/content/notes/llm/math-05-gradient.mdx";
 import { courseChapters, courseLessons } from "@/data/llm-course";
 
 const lessonContent = {
@@ -13,6 +14,7 @@ const lessonContent = {
   "math-02-ops": OperationsLesson,
   "math-03-matrix": MatrixLesson,
   "math-04-transform": TransformationLesson,
+  "math-05-gradient": GradientLesson,
 };
 type Props = { params: Promise<{ lesson: string }> };
 
