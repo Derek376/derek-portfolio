@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Derek | Software Engineer",
+  title: "Derek (Yang) Liu | Software Engineer",
   description:
-    "Personal website of Derek, a software engineering student at University College Dublin.",
+    "Personal website of Derek (Yang) Liu, an MSc Computer Science student at University College Dublin.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

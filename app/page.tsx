@@ -33,7 +33,7 @@ export default function Home() {
             </p>
 
             <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl">
-              Hi, I&apos;m <span className="accent-text">Derek.</span>
+              Hi, I&apos;m <span className="accent-text">Derek (Yang) Liu.</span>
             </h1>
 
             <div className="mt-7 max-w-2xl space-y-4 text-lg leading-8 text-neutral-600 sm:text-xl">

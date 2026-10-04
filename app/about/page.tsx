@@ -7,49 +7,48 @@ export default function AboutPage() {
 
       <div className="mt-16 grid gap-10 border-t border-neutral-200 pt-16 md:grid-cols-[1fr_2fr]">
         <h2 className="text-3xl font-semibold tracking-tight">
-          Hi, I&apos;m Derek.
+          Hi, I’m Derek (Yang) Liu.
         </h2>
 
         <div className="max-w-2xl">
           <div className="space-y-6 text-lg leading-8 text-neutral-600">
             <p>
-              This is my personal website, where I share things I find
-              interesting, random thoughts, and probably some stuff that nobody
-              asked for — but that's fine.
+              I’m currently studying for an MSc in Computer Science at
+              University College Dublin, and I’m mainly interested in backend
+              and full-stack software development.
             </p>
 
             <p>
-              I'm the kind of person who genuinely enjoys learning new things.
-              It's one of the few things that can make me feel real excitement
-              and satisfaction. I find joy in the process of discovery and
-              understanding. There's a quote I really like: “Education is what
-              remains after you have forgotten what you learned in school.” I
-              think that describes quite well how I see learning.
+              Most of my recent work has been around Java, Spring Boot, React,
+              PostgreSQL and Docker. I enjoy building applications from end to
+              end, but I’m especially interested in what happens behind the
+              interface — how APIs are designed, how data is stored safely, how
+              different services communicate, and how systems behave when
+              something goes wrong.
             </p>
 
             <p>
-              I have a few things I truly enjoy — coding, gaming, reading, and
-              having deep conversations. They might seem quite different, but to
-              me they all have something in common: they give me a chance to
-              step away from the repetitive and practical side of everyday life,
-              even just for a while.
+              I usually learn best by building things. Instead of only following
+              tutorials, I like turning what I learn into small projects and
+              then gradually making them more realistic. Recently, I’ve been
+              learning more about distributed systems, asynchronous messaging
+              with RabbitMQ, microservices, API gateways and resilient backend
+              design.
             </p>
 
             <p>
-              I sometimes feel it's quite impressive that we humans can live our
-              lives knowing that one day, inevitably, they will come to an end —
-              and still manage to care, create, learn, love, and find things
-              worth doing.
+              Outside of coding, I enjoy gaming, music, reading, playing piano
+              and learning about things that are not always related to
+              technology. I also like writing notes about topics I’ve recently
+              learned, because explaining something in simple words helps me
+              understand it better.
             </p>
 
             <p>
-              So I guess my philosophy is pretty simple: don't spend too much of
-              your life worrying about trivial things. Focus on what truly
-              matters to you and pursue it with passion. Find something you
-              genuinely enjoy, keep doing it, and see where it takes you.
+              At the moment, I’m looking for graduate software engineering
+              opportunities where I can keep improving as an engineer, work on
+              real systems, and learn from experienced developers.
             </p>
-
-            <p>Good luck, my friend.</p>
           </div>
         </div>
       </div>
