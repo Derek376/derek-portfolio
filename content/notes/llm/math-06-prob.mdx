@@ -1,0 +1,224 @@
+import { NextWordDistribution, InformationCurve, CoinEntropy, OneHotCrossEntropy } from "@/components/notes/ProbabilityFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { probabilityQuiz } from "@/data/probability-lesson";
+
+<h2 id="probability-distributions">1. What does a “70% chance of rain” mean?</h2>
+
+The weather forecast says: **“There is a 70% chance of rain tomorrow.”** But tomorrow it will either rain or it will not. Where does that 70% come from?
+
+One way to understand a well-calibrated forecast is through **long-run frequency**: among many comparable situations assigned a 70% probability, rain should occur about seven times out of ten. The number is not a promise about one particular day, and it does not mean that it will rain for 70% of the day.
+
+Rolling a die gives another example. Suppose you roll it 1,000 times and get a three on 168 rolls. The observed frequency is:
+
+$$
+\hat{p}(3)=\frac{168}{1000}=0.168.
+$$
+
+That is an **estimate** of the probability, not an exact law. For a fair six-sided die, the theoretical probability is $p(3)=\frac{1}{6}$; observed frequencies approach it as the number of independent rolls grows.
+
+Often we care about more than one outcome: **what proportion belongs to each possible outcome?** This question appears repeatedly in AI. Give a language model the prompt “The weather today is …”, and it can assign a probability to every candidate next token rather than simply returning one answer.
+
+<NextWordDistribution />
+
+This collection of numbers must obey two rules:
+
+$$
+p(x)\geq0\quad\text{for every outcome }x,
+\qquad
+\sum_x p(x)=1.
+$$
+
+A proportion cannot be negative, and the probabilities of all mutually exclusive, exhaustive outcomes add up to one. A collection satisfying these rules is a **discrete probability distribution**: a complete description of how probability is allocated across the possible outcomes.
+
+This explains why a classifier's final outputs, or a language model's next-token predictions, can be called **probabilities**. They form a non-negative distribution that sums to one. The raw scores inside a network do not necessarily have these properties; **Softmax**, in Lesson 11, turns scores into this form. Not every neural network outputs probabilities, and a valid distribution does not by itself guarantee accurate predictions.
+
+<h2 id="information">2. Information: surprising news carries more</h2>
+
+Once we have probabilities, a new question appears: **how much information does a message carry?** Start with two pieces of news from a friend:
+
+- “The sun will rise in the east tomorrow.” You barely react: it tells you almost nothing new.
+- “The owner of the corner shop won five million in the lottery last night.” That gets your attention.
+
+The first event is almost certain; the second is rare. **The less expected an event is, the more information observing it gives you.** This is a central intuition of information theory.
+
+The **self-information**, or **surprisal**, of an outcome $x$ is:
+
+$$
+I(x)=-\log p(x).
+$$
+
+Why a negative logarithm? It decreases as probability increases, but it also has another useful property: **information from independent messages adds up**. Independent probabilities multiply, while logarithms turn multiplication into addition.
+
+<InformationCurve />
+
+Using logarithms with base two, try three examples:
+
+- A certain event, $p(x)=1$: $I(x)=-\log_2 1=0$ bits. No surprise, no new information.
+- One outcome of a fair coin toss, $p(x)=0.5$: $I(x)=-\log_2 0.5=1$ bit.
+- A rare event, $p(x)=0.001$: $I(x)=-\log_2 0.001\approx9.97$ bits.
+
+With **base-two logarithms**, the unit is the **bit**. It relates to how many binary decisions are needed to distinguish outcomes, and to efficient average encoding lengths. An individual information value can be fractional; it is not necessarily the literal length of one binary message.
+
+Deep learning usually uses the **natural logarithm**, written $\ln$, with base $e$. Its unit is the **nat**. The two choices differ only by a fixed scale:
+
+$$
+-\ln p(x)=\ln 2\cdot\bigl(-\log_2 p(x)\bigr).
+$$
+
+The underlying properties stay the same. If an event is assigned zero probability, its information is infinite in the limiting sense: the distribution considers that observation impossible.
+
+<ThoughtExercise question="Why measure surprise with a logarithm instead of something simpler such as $1-p$? Think about combining two independent messages.">
+
+Suppose independent events have probabilities $p_1$ and $p_2$. Their joint probability is $p_1p_2$. We want the information from observing both to equal the sum of their individual information:
+
+$$
+I(p_1p_2)=I(p_1)+I(p_2).
+$$
+
+The logarithm gives exactly this property:
+
+$$
+-\log(p_1p_2)=-\log p_1-\log p_2.
+$$
+
+The expression $1-p$ does not. For two fair coin outcomes, the joint probability is $0.25$, so $1-0.25=0.75$, whereas adding the individual values gives $0.5+0.5=1$. Under the usual continuity and monotonicity assumptions, requiring additivity leads to a logarithmic measure, up to the choice of scale.
+
+</ThoughtExercise>
+
+<h2 id="entropy">3. Entropy: how difficult is the whole distribution to predict?</h2>
+
+Information describes the surprise of **one specific outcome**. To describe how unpredictable **the whole situation** is, take a **weighted average** of the possible surprises, using each outcome's probability as its weight.
+
+This average surprise is **entropy**:
+
+$$
+H(p)=\sum_x p(x)I(x)=-\sum_x p(x)\log p(x).
+$$
+
+Compare two coins to build an intuition.
+
+<CoinEntropy />
+
+For a fair coin, heads and tails each have probability $0.5$:
+
+$$
+H(p)=-0.5\log_2 0.5-0.5\log_2 0.5=1\;\text{bit}.
+$$
+
+For a biased coin with probabilities $0.9$ and $0.1$:
+
+$$
+H(p)=-0.9\log_2 0.9-0.1\log_2 0.1\approx0.47\;\text{bits}.
+$$
+
+The fair coin is harder to predict. With the biased coin, guessing heads is usually right, so the average uncertainty is lower.
+
+For a fixed set of $n$ possible outcomes:
+
+- The **uniform distribution** has the greatest entropy: $H(p)=\log n$. Every outcome is equally likely.
+- A **deterministic distribution**, with one outcome having probability one, has entropy zero. There is no uncertainty.
+
+In an entropy sum, we use the convention $0\log0=0$, justified by the limit as the probability approaches zero. Outcomes that never occur contribute nothing to the average.
+
+This helps explain why predicting language is a meaningful task. If every token were equally likely regardless of context, a model could not use context to predict better than uniform guessing. Real language has structure: “nice” is more plausible than “table” after “The weather today is …”. There is enough regularity to make prediction and compression possible, while several continuations may still make sense. It is neither completely predetermined nor completely random.
+
+<ThoughtExercise question="Distribution A assigns rain probability $0.9$ and sunshine probability $0.1$. Distribution B assigns each probability $0.5$. Which has greater entropy, and which is harder to predict?">
+
+**Distribution B has greater entropy.** Rain and sunshine are equally likely, so there is no preferred guess. In A, rain is overwhelmingly likely and uncertainty is lower.
+
+Using base-two logarithms, A has about $0.47$ bits of entropy and B has $1$ bit. For the same possible outcomes, a more uniform distribution has greater entropy.
+
+</ThoughtExercise>
+
+<h2 id="cross-entropy">4. Cross-entropy: using a possibly inaccurate map</h2>
+
+Entropy measures how unpredictable the **true distribution** is. In AI, we often have only a **map drawn by the model**: its estimated distribution $q$, which may differ from the true distribution $p$.
+
+**How surprised will we be on average if we use the model's map to face the real world?**
+
+The answer is **cross-entropy**. Measure surprise using the model's probabilities, $-\log q(x)$, but average it using the true probabilities $p(x)$:
+
+$$
+H(p,q)=-\sum_x p(x)\log q(x).
+$$
+
+For one next-token training example, the observed correct answer is known: suppose it is “cat”. We represent that target with a **one-hot distribution**:
+
+$$
+p(\text{cat})=1,\qquad p(\text{dog})=p(\text{bird})=0.
+$$
+
+The model is less certain. Suppose its predictions are:
+
+$$
+q(\text{cat})=0.7,\qquad q(\text{dog})=0.2,\qquad q(\text{bird})=0.1.
+$$
+
+<OneHotCrossEntropy />
+
+Only the cat term has a non-zero target weight. All the other terms disappear, leaving:
+
+$$
+\begin{aligned}
+H(p,q)&=-1\cdot\ln0.7-0\cdot\ln0.2-0\cdot\ln0.1\\
+&=-\ln0.7\approx0.36\;\text{nats}.
+\end{aligned}
+$$
+
+More generally, if the correct label is $y$, the per-example loss is:
+
+$$
+L=-\ln q(y).
+$$
+
+The more confidently the model assigns probability to the **correct answer**, the closer $q(y)$ is to one and the closer the loss is to zero. If it assigns almost no probability to the correct answer, the loss becomes very large.
+
+That makes cross-entropy a natural measure of how badly a next-token prediction went wrong. **Lesson 10: Loss functions** will use it as a training objective. The formula has an information-theoretic meaning rather than being an arbitrary scoring rule.
+
+The one-hot target describes the **observed answer for this example**. It does not mean that only one continuation is ever possible in the real language distribution. Training averages losses over many examples.
+
+### Two additional intuitions
+
+**Cross-entropy is at least as large as entropy.** The extra part measures the mismatch between the model's map and the true distribution. It is called **Kullback–Leibler divergence**, or **KL divergence**:
+
+$$
+\begin{aligned}
+D_{\mathrm{KL}}(p\Vert q)&=\sum_{x:p(x)>0}p(x)\log\frac{p(x)}{q(x)},\\
+H(p,q)&=H(p)+D_{\mathrm{KL}}(p\Vert q)\geq H(p).
+\end{aligned}
+$$
+
+For a finite discrete distribution, the lower bound is reached when $q=p$. If $q(x)=0$ for an outcome with $p(x)>0$, cross-entropy is infinite. KL divergence measures a discrepancy, but is not a symmetric distance: exchanging $p$ and $q$ generally changes its value.
+
+**Why use a logarithmic penalty instead of a simple difference?** As the model's probability for the correct answer approaches zero, $-\ln q(y)$ grows without bound. Its derivative with respect to that probability is:
+
+$$
+\frac{\partial L}{\partial q(y)}=-\frac{1}{q(y)}.
+$$
+
+This gives a strong penalty for confidently missing the correct answer. Connect this to the previous lesson: gradients tell us how changing a quantity changes the loss.
+
+There is a useful distinction here: this derivative is with respect to a **probability**, not directly to a network's parameters. With Softmax and cross-entropy, the derivative with respect to a raw score $z_i$ simplifies to $q_i-p_i$, which stays bounded. The full training gradient also depends on the network. We will return to this connection in the lessons on Softmax and backpropagation.
+
+Squared-error losses do not grow without bound as a correct-answer probability approaches zero. When combined with saturating probability outputs, their gradients can also become weak. This does not make squared error universally unsuitable; it helps explain why cross-entropy is a standard choice for classification and next-token prediction.
+
+<h2 id="summary">5. What you have discovered</h2>
+
+A **probability distribution** allocates probability across all possible outcomes: its entries are non-negative and sum to one.
+
+**Information** measures how surprising one outcome is. **Entropy** is the whole distribution's average surprise. **Cross-entropy** is the average surprise when we use the model's distribution $q$ while outcomes follow $p$.
+
+- **Distribution:** $p(x)\geq0$ and $\sum_x p(x)=1$. Probability allocated across outcomes.
+- **Information:** $I(x)=-\log p(x)$. Surprise of one outcome.
+- **Entropy:** $H(p)=-\sum_x p(x)\log p(x)$. Average surprise under the true distribution.
+- **Cross-entropy:** $H(p,q)=-\sum_x p(x)\log q(x)$. Average surprise using the model's probabilities.
+- **KL divergence:** $D_{\mathrm{KL}}(p\Vert q)=H(p,q)-H(p)$. Extra cost of a mismatched distribution.
+
+For a one-hot target, cross-entropy reduces to **the negative logarithm of the model's probability for the correct answer**. That is the connection between information theory and the loss functions used to train classifiers and language models.
+
+You now have four foundational tools: **vectors, matrices, gradients and probabilities**. The next chapter will bring them together in a neuron: the basic building block of a neural network.
+
+<h2 id="quiz">Check your understanding</h2>
+
+<LessonQuiz questions={probabilityQuiz} />

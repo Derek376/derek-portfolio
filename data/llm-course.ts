@@ -69,6 +69,17 @@ const publishedLessons: Record<string, { description: string; sections: LessonSe
       { id: "quiz", title: "Check your understanding" },
     ],
   },
+  "math-06-prob": {
+    description: "Why do classifiers output probabilities? From long-run frequency and surprising events to entropy and cross-entropy loss.",
+    sections: [
+      { id: "probability-distributions", title: "What does a 70% chance of rain mean?" },
+      { id: "information", title: "Information: the value of surprise" },
+      { id: "entropy", title: "Entropy: average uncertainty" },
+      { id: "cross-entropy", title: "Cross-entropy: an imperfect map" },
+      { id: "summary", title: "What you have discovered" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
 };
 
 function lesson(number: string, slug: string, title: string): CourseLesson {
@@ -89,7 +100,7 @@ export const courseChapters = [
       lesson("03", "math-03-matrix", "What is a matrix?"),
       lesson("04", "math-04-transform", "What is a linear transformation?"),
       lesson("05", "math-05-gradient", "What is a gradient?"),
-      lesson("06", "math-05-prob", "Probability and information"),
+      lesson("06", "math-06-prob", "Probability and information"),
     ],
   },
   {
