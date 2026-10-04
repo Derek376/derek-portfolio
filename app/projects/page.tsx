@@ -56,6 +56,16 @@ export default function ProjectsPage() {
                     {repository.label} ↗
                   </a>
                 ))}
+                {project.liveDemo && (
+                  <a
+                    href={project.liveDemo}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-neutral-600 underline decoration-neutral-300 underline-offset-4 transition-colors hover:text-neutral-900"
+                  >
+                    Live demo ↗
+                  </a>
+                )}
               </div>
             </div>
 

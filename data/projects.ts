@@ -5,11 +5,13 @@ type Project = {
   description: string;
   technologies: string;
   repositories: { label: string; href: string }[];
+  liveDemo?: string;
 };
 
 export const eShopProject = {
   title: "E-Shop",
   slug: "e-shop",
+  liveDemo: "https://react-ecom-zeta.vercel.app/",
   detailHref: "/projects/e-shop",
   description:
     "A React storefront and Spring Boot API with role-based access, Stripe checkout, and server-side order validation.",

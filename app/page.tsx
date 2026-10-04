@@ -96,6 +96,17 @@ export default function Home() {
                   <path d="m3.5 6 8.5 7 8.5-7" />
                 </svg>
               </a>
+
+              <a
+                href="/cv.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="View CV (PDF, opens in a new tab)"
+                title="View CV"
+                className="flex h-10 w-10 items-center justify-center transition-colors hover:text-neutral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-900"
+              >
+                <span className="text-sm font-semibold tracking-wide" aria-hidden="true">CV</span>
+              </a>
             </div>
 
             <Link
@@ -178,6 +189,16 @@ export default function Home() {
                         {repository.label} ↗
                       </a>
                     ))}
+                    {project.liveDemo && (
+                      <a
+                        href={project.liveDemo}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-neutral-600 underline decoration-neutral-300 underline-offset-4 transition-colors hover:text-neutral-900"
+                      >
+                        Live demo ↗
+                      </a>
+                    )}
                   </div>
                 </div>
 

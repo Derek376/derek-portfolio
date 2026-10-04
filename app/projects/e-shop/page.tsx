@@ -39,6 +39,14 @@ export default function EShopProject() {
               {repository.label} repository ↗
             </a>
           ))}
+          <a
+            href={eShopProject.liveDemo}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="border-b border-neutral-300 pb-1 transition-colors hover:border-neutral-900"
+          >
+            Live demo ↗
+          </a>
         </div>
       </header>
 
