@@ -1,3 +1,4 @@
+import { SvgMath } from "./Math";
 import { animals } from "@/data/vector-lesson";
 
 export function SizeNumberLine() {
@@ -112,9 +113,7 @@ export function AnimalPlane() {
             stroke="#737373"
             strokeDasharray="5 5"
           />
-          <text x="335" y="185" fontSize="12" fill="#525252">
-            Distance ≈ 0.70
-          </text>
+          <SvgMath x={335} y={185} size={12} width={180} tex={String.raw`d\approx0.70`} />
           {animals.map((animal) => (
             <g key={animal.name}>
               <circle

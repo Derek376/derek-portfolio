@@ -20,16 +20,18 @@ A natural idea is to choose a **measurable attribute** and turn each animal into
 
 <h2 id="one-number">2. The simplest solution: one number</h2>
 
-Give each animal a “size score” between 0 and 1. A goldfish scores `0.02`, a cat `0.25`, a dog `0.45`, a crocodile `0.50` and a tiger `0.90`. Put them on a number line:
+Give each animal a “size score” between 0 and 1. A goldfish scores $0.02$, a cat $0.25$, a dog $0.45$, a crocodile $0.50$ and a tiger $0.90$. Put them on a number line:
 
 <SizeNumberLine />
 
 Something remarkable happens: **“how alike are they?” becomes something we can calculate.** The smaller the difference between two numbers, the more “alike” the animals are:
 
-```text
-distance(cat, tiger)   = |0.25 − 0.90| = 0.65
-distance(cat, goldfish) = |0.25 − 0.02| = 0.23
-```
+$$
+\begin{aligned}
+d(\text{cat},\text{tiger}) &= |0.25-0.90| = 0.65 \\
+d(\text{cat},\text{goldfish}) &= |0.25-0.02| = 0.23
+\end{aligned}
+$$
 
 Wait — according to this algorithm, the cat and the **goldfish** are more alike? Something seems wrong, but do not throw the idea out just yet. This approach has done at least one important thing right: **it turned “comparing two things” into “comparing two numbers”.**
 
@@ -39,9 +41,9 @@ We want to keep that idea. The real problem lies elsewhere.
 
 Look again at the dog and the crocodile in Figure 1-1. According to our algorithm:
 
-```text
-distance(dog, crocodile) = |0.45 − 0.50| = 0.05
-```
+$$
+d(\text{dog},\text{crocodile}) = |0.45-0.50| = 0.05
+$$
 
 That is the smallest distance on the entire number line.
 
@@ -49,24 +51,23 @@ That is the smallest distance on the entire number line.
 
 <ThoughtExercise question="Without giving up the idea of describing things with numbers, what is the smallest improvement you can make?">
 
-If one number is not enough, use **two**. Keep the size score and add a “ferocity score”: a dog is gentle, `0.20`; a crocodile is fierce, `0.90`. Once each animal has two numbers, it is no longer a point on a number line, but a point on a **plane**.
+If one number is not enough, use **two**. Keep the size score and add a “ferocity score”: a dog is gentle, $0.20$; a crocodile is fierce, $0.90$. Once each animal has two numbers, it is no longer a point on a number line, but a point on a **plane**.
 
 </ThoughtExercise>
 
 <h2 id="two-dimensions">4. From a number line to a plane</h2>
 
-Give each animal two numbers, `(size, ferocity)`. Use the first as its horizontal coordinate and the second as its vertical coordinate:
+Give each animal two numbers, $(\text{size},\text{ferocity})$. Use the first as its horizontal coordinate and the second as its vertical coordinate:
 
 <AnimalPlane />
 
-The dog and the crocodile are still close together on the horizontal axis, but the vertical axis pulls them apart. Using the Pythagorean theorem — we will leave the details for the next lesson — their distance changes from `0.05` to approximately `0.70`. Problem solved.
+The dog and the crocodile are still close together on the horizontal axis, but the vertical axis pulls them apart. Using the Pythagorean theorem — we will leave the details for the next lesson — their distance changes from $0.05$ to approximately $0.70$. Problem solved.
 
 Now notice what you have just done: you have written an animal as **an ordered collection of numbers**:
 
-```text
-dog = [0.45, 0.20]
-// The first number is size; the second is ferocity.
-```
+$$
+\mathbf{v}_{\text{dog}} = [0.45,\,0.20] \qquad \text{(size, ferocity)}
+$$
 
 In mathematics, this collection of numbers is called a **vector**.
 
@@ -86,7 +87,7 @@ This is exactly what modern AI does. In large language models such as GPT, each 
 
 **What you have built in this lesson:**
 
-- **Vector:** an ordered collection of numbers, such as `[0.45, 0.20]`.
+- **Vector:** an ordered collection of numbers, such as $[0.45, 0.20]$.
 - **Dimensionality:** the number of values; each dimension is a way of looking at something.
 - **The three faces of a vector:** a list of numbers, a point in space, and an arrow starting at the origin.
 - **Similarity as distance:** the closer two vectors are, the more alike the things they represent.

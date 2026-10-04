@@ -1,0 +1,156 @@
+import { PointMovement, SquareTransformation, WholeSpaceTransformation, BasisVectors, TransformationGallery, AffineTranslation } from "@/components/notes/TransformationFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { transformationQuiz } from "@/data/linear-transformation";
+
+<h2 id="geometric-view">1. The same $W\mathbf{x}$, a different view</h2>
+
+In the previous lesson, we learned **matrix–vector multiplication, $W\mathbf{x}$**: take the dot product of each row of $W$ with $\mathbf{x}$ to obtain each component of the output. That was a **calculation-based view** — treat the matrix as a calculator, feed it one vector, and receive another.
+
+In this lesson, we will look at the same $W\mathbf{x}$ through a different lens: what is it doing **geometrically**? Do not worry about big words such as “space” and “transformation” just yet. **Start with one vector and work step by step.**
+
+First, recall a fact from Lesson 1. A vector is **a list of numbers**, but we can also draw it as **an arrow starting at the origin**, with its tip at **a point** on graph paper. For example, $\mathbf{x}=[1,1]$ points one unit right and one unit up.
+
+Second, here is the key observation: if the input $\mathbf{x}$ is a point and the output $W\mathbf{x}$ is also a point, the geometric action of matrix multiplication is quite simple: **it sends the input point to another position**.
+
+Try a concrete example:
+
+$$
+\begin{gathered}
+W=\begin{bmatrix}2&1\\1&2\end{bmatrix},\qquad
+\mathbf{x}=\begin{bmatrix}1\\1\end{bmatrix}
+\\[1em]
+W\mathbf{x}=\begin{bmatrix}2\cdot1+1\cdot1\\1\cdot1+2\cdot1\end{bmatrix}=\begin{bmatrix}3\\3\end{bmatrix}
+\end{gathered}
+$$
+
+This $W$ sends $[1, 1]$ to $[3, 3]$. Drawing it on a coordinate plane makes the action clear:
+
+<PointMovement />
+
+**One matrix multiplication assigns a new position to a point.** So far, this is still the story of just **one** point.
+
+Third comes the real leap: **what if the same $W$ transforms every point on the graph paper?** Instead of immediately imagining infinitely many points, take a small step: **from one point to four**.
+
+Take a unit **square**, with corners $A = [0, 0]$, $B = [1, 0]$, $C = [1, 1]$ and $D = [0, 1]$. Multiply each corner by the same $W$ — C is the point we just used in Figure 4-1:
+
+$$
+\begin{aligned}
+A=[0,0]&\longmapsto A'=[0,0] \\
+B=[1,0]&\longmapsto B'=[2,1] \\
+C=[1,1]&\longmapsto C'=[3,3] \\
+D=[0,1]&\longmapsto D'=[1,2]
+\end{aligned}
+$$
+
+<SquareTransformation />
+
+Connect the new corners in their original order, and the square becomes a **parallelogram**. Look at it for a few seconds. The origin A has not moved. The edges are still **straight**, opposite sides are still **parallel**, and the area has increased from 1 to 3. $W$ has **reshaped the entire region**.
+
+Now extend this idea: not only the four corners, but **every point inside and outside the square** follows the same rule. Think of the “free transform” tool in an image editor: move a control point, and thousands of pixels move together according to one rule.
+
+When the same $W$ acts on every point, **the entire coordinate grid takes on a new shape**. It might rotate, stretch, compress or shear. This is what it means to view $W\mathbf{x}$ as **a transformation of the whole space**. It is no longer about moving a single isolated point, but applying one rule everywhere. For the non-degenerate examples here, the grid lines stay straight and each family stays parallel and evenly spaced:
+
+<WholeSpaceTransformation />
+
+<ThoughtExercise question="If we can calculate $W\mathbf{x}$ one point at a time, why bother looking at it as a transformation of the whole space?">
+
+The calculation-based view tells you what happens to **one** input, but does not show the **overall** action. The geometric view reveals the matrix's behaviour at a glance: is $W$ rotating the space, stretching it, or compressing a direction? Understanding the shape of the transformation helps you understand what each neural network layer does to the data space.
+
+</ThoughtExercise>
+
+<h2 id="basis-vectors">2. Watch the basis vectors</h2>
+
+The coordinate plane has infinitely many points. Must we calculate each new position separately? No. There is a shortcut: **if we know where the two basis vectors go, we know where the entire plane goes**.
+
+The basis vectors are the two unit-length arrows along the coordinate axes: **$\hat{\mathbf{i}}=[1,0]$**, pointing right, and **$\hat{\mathbf{j}}=[0,1]$**, pointing up. Every point in the plane is a **linear combination** of them. For example, $[3, 2]$ means “three steps along $\hat{\mathbf{i}}$, then two steps along $\hat{\mathbf{j}}$”: $3\hat{\mathbf{i}}+2\hat{\mathbf{j}}$.
+
+A matrix transformation has a useful property: **it preserves this combination rule**. If $\hat{\mathbf{i}}$ moves to $\hat{\mathbf{i}}'$ and $\hat{\mathbf{j}}$ moves to $\hat{\mathbf{j}}'$, then $[3, 2]$ moves to $3\hat{\mathbf{i}}'+2\hat{\mathbf{j}}'$. Knowing just those two new positions lets us determine every point's new position. And those positions are **exactly the two columns of $W$**:
+
+<BasisVectors />
+
+To understand a matrix geometrically **in two dimensions**, take its two columns, draw them as arrows, and see where they point. They tell you how the plane transforms.
+
+One clarification matters: **reading the columns works in any dimension; having exactly two columns is specific to a two-dimensional input**. An $n$-dimensional input has $n$ standard basis vectors, one along each axis, so its transformation matrix has $n$ columns. **Column $k$ tells you where the basis vector on axis $k$ goes**. The principle is unchanged; there are simply more arrows than we can draw. The matrices with thousands of rows and columns in neural networks are this same idea in higher dimensions.
+
+<h2 id="transformation-types">3. Rotation, scaling, shear and reflection</h2>
+
+Different matrices produce different transformations. Use the same unit square to explore four common types. The dashed outline shows the original square; the coloured shape shows the result. Each diagram includes its matrix. Remember that its columns give the new positions of $\hat{\mathbf{i}}$ and $\hat{\mathbf{j}}$:
+
+<TransformationGallery />
+
+For these examples, rotation, scaling, shear and reflection preserve straight edges, parallel opposite sides and the origin. The square remains a parallelogram. More generally, a linear transformation can also collapse a dimension, turning a square into a line or even a point.
+
+The defining rules of **linearity** are that the transformation preserves vector addition and scalar multiplication:
+
+$$
+\begin{aligned}
+T(\mathbf{a}+\mathbf{b})&=T(\mathbf{a})+T(\mathbf{b}) \\
+T(k\mathbf{a})&=kT(\mathbf{a})
+\end{aligned}
+$$
+
+Geometrically, the origin stays fixed. Straight lines do not become curves: they map to straight lines or, if a dimension collapses, to points. This is the mathematical meaning behind “linear”.
+
+What are linear transformations used for? At heart, they let us **use one matrix to rearrange a whole collection of vectors according to the same rule**. This simple operation supports many applications:
+
+- **Geometric transformations:** rotation, scaling, reflection and projection in games, 3D rendering, image editing and CAD. Transform the coordinates of each vertex using the same matrix, just as in Figure 4-5.
+- **Looking at data in a new coordinate system:** project data onto new axes to emphasise informative directions and reduce redundant dimensions. **Dimensionality reduction**, such as PCA, uses linear projections. PCA commonly centres the data first.
+- **Neural network layers:** the core operation $W\mathbf{x}$ transforms the data space. Layers can reshape the representation to make samples easier to separate. Biases and nonlinear activation functions extend what the network can express; linear transformations alone cannot make every classification problem linearly separable.
+
+Here is a concrete example: rotate a photo **$90^\circ$ anticlockwise**. Imagine its pixels in a Cartesian coordinate system, with $\mathbf{x}$ increasing to the right and $\mathbf{y}$ increasing upwards. Apply the same rotation matrix to every pixel coordinate:
+
+$$
+R=\begin{bmatrix}0&-1\\1&0\end{bmatrix},\qquad R\begin{bmatrix}x\\y\end{bmatrix}=\begin{bmatrix}-y\\x\end{bmatrix}
+$$
+
+Each pixel moves to $(-y, x)$. For example, $(3, 1)$ moves to $(-1, 3)$. Thousands of pixels follow the same rule, rotating the image together. A real image editor also accounts for the rotation centre, image bounds and its pixel-coordinate convention, but this matrix describes the geometric rotation.
+
+Linear transformations are a basic tool for **moving and reorganising data** in a neural network. Understanding them gives you a geometric view of the matrix operation within a layer.
+
+<h2 id="bias-translation">4. To translate the space, add $\mathbf{b}$</h2>
+
+Linear transformations are powerful, but there is one thing they cannot do: **translate the whole space**. The reason is already familiar: they keep the origin fixed. No matter how we rotate or stretch the space, $[0, 0]$ still maps to $[0, 0]$.
+
+Neural networks often need a shift as well. The solution is straightforward: **add a bias vector $\mathbf{b}$ after $W\mathbf{x}$**, shifting the transformed space to a new position:
+
+$$
+\mathbf{y}=W\mathbf{x}+\mathbf{b}
+$$
+
+<AffineTranslation />
+
+This is the core operation of a **fully connected layer**. $W$'s shape determines the input and output dimensions. Each component of $\mathbf{b}$ provides a learnable baseline offset for one output. With non-zero $\mathbf{b}$, this is an **affine transformation**, rather than a linear transformation. A layer may then apply an activation function.
+
+<h2 id="stacking-layers">5. Many layers can still be one</h2>
+
+If each layer computes $W\mathbf{x}+\mathbf{b}$, can stacking many of them produce a much more complex transformation? Follow the mathematics for two layers, **without an activation function between them**:
+
+$$
+\begin{aligned}
+\mathbf{h}&=W_1\mathbf{x}+\mathbf{b}_1 &&\text{(first layer)} \\
+\mathbf{y}&=W_2\mathbf{h}+\mathbf{b}_2 &&\text{(second layer)} \\
+\mathbf{y}&=W_2(W_1\mathbf{x}+\mathbf{b}_1)+\mathbf{b}_2 \\
+&=(W_2W_1)\mathbf{x}+(W_2\mathbf{b}_1+\mathbf{b}_2)
+\end{aligned}
+$$
+
+> **Two layers equal one.** Multiply $W_2$ and $W_1$ to form **one** new matrix. Combine $W_2\mathbf{b}_1+\mathbf{b}_2$ into **one** new bias. Two affine layers therefore give the same result as one affine layer. The same reasoning applies no matter how many such layers we stack. Geometrically, rotating and then stretching still amounts to another linear transformation; adding translations gives another affine transformation.
+
+A network containing only these operations has an **expressive limit**. With a linear classification score and a threshold, it can only draw a straight-line boundary — a hyperplane in higher dimensions. It cannot, for example, precisely enclose a circular region. To go further, place **nonlinearity** between the layers. That is the role of the **activation functions** we will study later.
+
+> **The takeaway.** $W\mathbf{x}$ applies **one transformation to the whole space**: rotation, stretching, shear or reflection. Read a matrix by looking at **its columns**: each is the transformed position of a standard basis vector. A linear transformation preserves addition and scalar multiplication and fixes the origin. Add $\mathbf{b}$ to translate the result, giving the affine operation **$W\mathbf{x}+\mathbf{b}$** used in a fully connected layer. Stacking these operations without nonlinear activations is still equivalent to one affine operation.
+
+**What you have learned to see differently:**
+
+- **Geometric view:** $W\mathbf{x}$ transforms the whole coordinate grid, not just a single point.
+- **Basis-vector shortcut:** the matrix columns specify where the basis vectors go. There are two for a two-dimensional input, and $n$ for an $n$-dimensional input.
+- **Four transformations:** scaling, rotation, shear and reflection. The examples preserve straight, parallel, evenly spaced grid lines.
+- **$W\mathbf{x}+\mathbf{b}$:** $W$ reshapes the space; $\mathbf{b}$ translates it. Together, they form the affine part of a fully connected layer.
+- **The expressive limit:** stacking linear or affine transformations without nonlinearity does not increase the family of transformations the network can represent.
+
+<h2 id="quiz">Check your understanding</h2>
+
+Choose an answer and select “Submit answer” to see the correct option and an explanation.
+
+<LessonQuiz questions={transformationQuiz} />

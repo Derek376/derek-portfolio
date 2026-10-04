@@ -12,3 +12,20 @@ To publish another lesson:
 Only registered lessons have local routes. Unavailable lessons remain plain text until their content is ready.
 
 Static text and diagrams render on the server. The animal map, quiz and active table of contents use small Client Components. Content is stored locally.
+
+
+## Mathematics
+
+Use `$...$` for inline formulas and `$$` on separate lines for display equations:
+
+```md
+The dot product is $\mathbf{a}\cdot\mathbf{b}$.
+
+$$
+W=\begin{bmatrix}2&1\\1&2\end{bmatrix}
+$$
+```
+
+The MDX pipeline uses `remark-math` and `rehype-katex`. KaTeX CSS and fonts are loaded locally by the course layout. Invalid formulas fail the build instead of silently displaying broken notation.
+
+For JSX attributes (such as a `ThoughtExercise` question), write `$...$` inside the string; these use the server `MathText` component. In `.tsx` diagrams, use `MathFormula` with `String.raw` for TeX strings, or `SvgMath` for SVG labels. Ordinary axis tick values and data tables remain numbers. Formulas in quiz text are also rendered on the server and passed into the interactive quiz as React content.

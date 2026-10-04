@@ -46,6 +46,17 @@ const publishedLessons: Record<string, { description: string; sections: LessonSe
       { id: "quiz", title: "Check your understanding" },
     ],
   },
+  "math-04-transform": {
+    description: "What does matrix multiplication do geometrically? Transform the whole space through rotation, scaling, shear and reflection.",
+    sections: [
+      { id: "geometric-view", title: "The same Wx, a different view" },
+      { id: "basis-vectors", title: "Watch the basis vectors" },
+      { id: "transformation-types", title: "Rotation, scaling, shear and reflection" },
+      { id: "bias-translation", title: "To translate the space, add b" },
+      { id: "stacking-layers", title: "Many layers can still be one" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
 };
 
 function lesson(number: string, slug: string, title: string): CourseLesson {
@@ -64,7 +75,7 @@ export const courseChapters = [
       lesson("01", "math-01-vector", "What is a vector?"),
       lesson("02", "math-02-ops", "Common vector operations"),
       lesson("03", "math-03-matrix", "What is a matrix?"),
-      lesson("04", "math-03-transform", "What is a linear transformation?"),
+      lesson("04", "math-04-transform", "What is a linear transformation?"),
       lesson("05", "math-04-gradient", "What is a gradient?"),
       lesson("06", "math-05-prob", "Probability and information"),
     ],

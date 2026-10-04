@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { MathText } from "./Math";
 
 export default function ThoughtExercise({ question, children }: {
   question: string;
@@ -7,7 +8,7 @@ export default function ThoughtExercise({ question, children }: {
   return (
     <fieldset className="thought-exercise">
       <legend>Pause and think</legend>
-      <p className="thought-question">{question}</p>
+      <p className="thought-question"><MathText>{question}</MathText></p>
       <details>
         <summary>
           <span className="show-answer">I&apos;ve thought about it — show the answer</span>

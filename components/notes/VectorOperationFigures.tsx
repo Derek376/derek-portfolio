@@ -1,3 +1,4 @@
+import MathFormula, { SvgMath } from "./Math";
 import type { ReactNode } from "react";
 import { articleVectors } from "@/data/vector-operations";
 
@@ -114,6 +115,18 @@ export function ArticleComparison({ arrows = false }: { arrows?: boolean }) {
       <text x="105" y="25" fontSize="14" fill="#525252">
         Occurrences of ‘data’ ↑
       </text>
+      {!arrows && articleVectors.slice(1).map((article) => (
+        <line
+          key={`A-${article.name}`}
+          x1={105 + articleVectors[0].ai * 30}
+          y1={305 - articleVectors[0].data * 30}
+          x2={105 + article.ai * 30}
+          y2={305 - article.data * 30}
+          stroke="#a3a3a3"
+          strokeWidth="1.5"
+          strokeDasharray="5 5"
+        />
+      ))}
       {articleVectors.map((article, index) => (
         <g key={article.name}>
           {arrows && (
@@ -135,14 +148,7 @@ export function ArticleComparison({ arrows = false }: { arrows?: boolean }) {
               fill={colours[index]}
             />
           )}
-          <text
-            x={115 + article.ai * 30}
-            y={300 - article.data * 30}
-            fontSize="14"
-            fill={colours[index]}
-          >
-            {article.name} ({article.ai}, {article.data})
-          </text>
+          <SvgMath x={115 + article.ai * 30} y={300 - article.data * 30} color={colours[index]} tex={`${article.name} (${article.ai}, ${article.data})`} />
         </g>
       ))}
     </Diagram>
@@ -192,21 +198,11 @@ export function ProjectionFigure() {
         strokeWidth="3"
       />
       <path d="M135 280 A65 65 0 0 0 124 244" fill="none" stroke="#a3a3a3" />
-      <text x="147" y="262" fontSize="16" fill="#525252">
-        θ
-      </text>
-      <text x="560" y="285" fontSize="16" fill={colours[0]}>
-        a
-      </text>
-      <text x="375" y="85" fontSize="16" fill={colours[1]}>
-        b
-      </text>
-      <text x="220" y="320" textAnchor="middle" fontSize="14" fill={colours[2]}>
-        |b| cos θ = projection length
-      </text>
-      <text x="320" y="360" textAnchor="middle" fontSize="16" fill="#262626">
-        a · b = |a| × projection length
-      </text>
+      <SvgMath x={147} y={262} size={16} anchor="start" width={100} color="#525252" tex={String.raw`\theta`} />
+      <SvgMath x={560} y={285} size={16} anchor="start" width={100} color={colours[0]} tex={String.raw`\mathbf{a}`} />
+      <SvgMath x={375} y={85} size={16} anchor="start" width={100} color={colours[1]} tex={String.raw`\mathbf{b}`} />
+      <SvgMath x={220} y={320} size={14} anchor="middle" width={420} color={colours[2]} tex={String.raw`\lVert\mathbf{b}\rVert\cos\theta=\text{projection length}`} />
+      <SvgMath x={320} y={360} size={16} anchor="middle" width={500} color="#262626" tex={String.raw`\mathbf{a}\cdot\mathbf{b}=\lVert\mathbf{a}\rVert\times\text{projection length}`} />
     </Diagram>
   );
 }
@@ -216,9 +212,9 @@ export function DotProductSigns() {
     <figure>
       <div className="grid gap-6 border-y border-neutral-200 py-6 sm:grid-cols-3">
         {[
-          { title: "Similar directions", end: [150, 42], value: "a · b > 0" },
-          { title: "Perpendicular", end: [45, 25], value: "a · b = 0" },
-          { title: "Opposing directions", end: [10, 60], value: "a · b < 0" },
+          { title: "Similar directions", end: [150, 42], value: String.raw`\mathbf{a}\cdot\mathbf{b}>0` },
+          { title: "Perpendicular", end: [45, 25], value: String.raw`\mathbf{a}\cdot\mathbf{b}=0` },
+          { title: "Opposing directions", end: [10, 60], value: String.raw`\mathbf{a}\cdot\mathbf{b}<0` },
         ].map((item, index) => (
           <div key={item.title}>
             <p className="text-sm font-medium text-neutral-900">{item.title}</p>
@@ -258,9 +254,7 @@ export function DotProductSigns() {
                 strokeWidth="2"
                 markerEnd={`url(#sign-${index})`}
               />
-              <text x="185" y="115" fontSize="12" fill="#737373">
-                a
-              </text>
+              <SvgMath x={185} y={115} size={12} anchor="start" width={100} color="#737373" tex={String.raw`\mathbf{a}`} />
               <text
                 x={item.end[0] + 8}
                 y={item.end[1]}
@@ -270,7 +264,7 @@ export function DotProductSigns() {
                 b
               </text>
             </svg>
-            <p className="font-mono text-sm">{item.value}</p>
+            <p className="text-sm"><MathFormula tex={item.value} /></p>
           </div>
         ))}
       </div>
@@ -289,26 +283,14 @@ export function CosineComparison() {
       <div className="grid gap-6 border-y border-neutral-200 py-6 sm:grid-cols-2">
         <div>
           <p className="font-medium text-neutral-900">A and B</p>
-          <p className="mt-3 font-mono text-sm">
-            A · B = 8 × 2 + 6 × 1 = 22
-            <br />
-            |A| = 10; |B| ≈ 2.24
-            <br />
-            cos θ ≈ 22 / (10 × 2.24) ≈ 0.98
-          </p>
+          <div className="mt-3 overflow-x-auto text-sm"><MathFormula tex={String.raw`\begin{aligned} A\cdot B&=8\times2+6\times1=22\\ \lVert A\rVert&=10,\quad\lVert B\rVert\approx2.24\\ \cos\theta&\approx\frac{22}{10\times2.24}\approx0.98\end{aligned}`} /></div>
           <p className="accent-text mt-3 text-sm">
             Closely aligned directions.
           </p>
         </div>
         <div>
           <p className="font-medium text-neutral-900">A and C</p>
-          <p className="mt-3 font-mono text-sm">
-            A · C = 8 × 1 + 6 × 7 = 50
-            <br />
-            |A| = 10; |C| ≈ 7.07
-            <br />
-            cos θ ≈ 50 / 70.7 ≈ 0.71
-          </p>
+          <div className="mt-3 overflow-x-auto text-sm"><MathFormula tex={String.raw`\begin{aligned} A\cdot C&=8\times1+6\times7=50\\ \lVert A\rVert&=10,\quad\lVert C\rVert\approx7.07\\ \cos\theta&\approx\frac{50}{70.7}\approx0.71\end{aligned}`} /></div>
           <p className="mt-3 text-sm">Noticeably different directions.</p>
         </div>
       </div>
@@ -383,18 +365,10 @@ export function SemanticArithmetic() {
           </text>
         </g>
       ))}
-      <text x="305" y="120" textAnchor="middle" fontSize="13" fill={colours[0]}>
-        + woman − man
-      </text>
-      <text x="305" y="270" textAnchor="middle" fontSize="13" fill={colours[0]}>
-        + woman − man
-      </text>
-      <text x="180" y="175" fontSize="13" fill={colours[1]}>
-        + royalty
-      </text>
-      <text x="320" y="365" textAnchor="middle" fontSize="16" fill="#262626">
-        king − man + woman ≈ queen
-      </text>
+      <SvgMath x={305} y={120} size={13} anchor="middle" width={220} color={colours[0]} tex={String.raw`+\mathbf{v}_{\text{woman}}-\mathbf{v}_{\text{man}}`} />
+      <SvgMath x={305} y={270} size={13} anchor="middle" width={220} color={colours[0]} tex={String.raw`+\mathbf{v}_{\text{woman}}-\mathbf{v}_{\text{man}}`} />
+      <SvgMath x={180} y={175} size={13} anchor="start" width={100} color={colours[1]} tex={String.raw`+\text{royalty}`} />
+      <SvgMath x={320} y={365} size={16} anchor="middle" width={520} color="#262626" tex={String.raw`\mathbf{v}_{\text{king}}-\mathbf{v}_{\text{man}}+\mathbf{v}_{\text{woman}}\approx\mathbf{v}_{\text{queen}}`} />
     </Diagram>
   );
 }

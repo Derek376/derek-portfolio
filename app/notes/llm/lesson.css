@@ -49,3 +49,10 @@
 .thought-exercise details[open] .show-answer { display: none; }
 .thought-exercise details[open] .hide-answer { display: inline; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Long display equations scroll within the article on narrow screens. */
+.lesson-prose .katex { font-size: 1.05em; }
+.lesson-prose .katex-display { overflow-x: auto; overflow-y: hidden; padding-block: 0.5rem; }
+.lesson-prose .katex-display > .katex { white-space: nowrap; }
+.math-expression { color: inherit; }
+.svg-math .katex { font-size: 1em; }
