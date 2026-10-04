@@ -2,6 +2,7 @@ import type { IconType } from "react-icons";
 import { FaJava } from "react-icons/fa6";
 import {
   SiDocker,
+  SiExpress,
   SiFlask,
   SiMysql,
   SiNextdotjs,
@@ -20,6 +21,7 @@ const icons = {
   spring: SiSpringboot,
   react: SiReact,
   node: SiNodedotjs,
+  express: SiExpress,
   python: SiPython,
   flask: SiFlask,
   postgresql: SiPostgresql,

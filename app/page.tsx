@@ -5,20 +5,45 @@ import SkillIcon from "@/components/SkillIcon";
 import { blogs } from "@/data/blogs";
 import { projects } from "@/data/projects";
 
-const skills = [
-  { name: "java", label: "Java" },
-  { name: "spring", label: "Spring Boot" },
-  { name: "react", label: "React" },
-  { name: "node", label: "Node.js / Express" },
-  { name: "python", label: "Python" },
-  { name: "flask", label: "Flask" },
-  { name: "postgresql", label: "PostgreSQL" },
-  { name: "mysql", label: "MySQL" },
-  { name: "next", label: "Next.js" },
-  { name: "javascript", label: "JavaScript" },
-  { name: "typescript", label: "TypeScript" },
-  { name: "tailwind", label: "Tailwind CSS" },
-  { name: "docker", label: "Docker" },
+const skillGroups = [
+  {
+    id: "languages",
+    label: "Languages",
+    skills: [
+      { name: "java", label: "Java" },
+      { name: "python", label: "Python" },
+      { name: "javascript", label: "JavaScript" },
+      { name: "typescript", label: "TypeScript" },
+    ],
+  },
+  {
+    id: "backend",
+    label: "Backend",
+    skills: [
+      { name: "spring", label: "Spring Boot" },
+      { name: "node", label: "Node.js" },
+      { name: "express", label: "Express" },
+      { name: "flask", label: "Flask" },
+    ],
+  },
+  {
+    id: "frontend",
+    label: "Frontend",
+    skills: [
+      { name: "react", label: "React" },
+      { name: "next", label: "Next.js" },
+      { name: "tailwind", label: "Tailwind CSS" },
+    ],
+  },
+  {
+    id: "data-infrastructure",
+    label: "Data & Infrastructure",
+    skills: [
+      { name: "postgresql", label: "PostgreSQL" },
+      { name: "mysql", label: "MySQL" },
+      { name: "docker", label: "Docker" },
+    ],
+  },
 ] as const;
 
 export default function Home() {
@@ -130,15 +155,31 @@ export default function Home() {
             </h2>
           </div>
 
-          <div className="flex flex-wrap gap-2 border-t border-neutral-200 pt-8">
-            {skills.map((skill) => (
-              <div
-                key={skill.name}
-                className="skill-tag inline-flex h-10 items-center gap-2 rounded-md border border-neutral-200 px-3 text-sm text-neutral-600 transition-colors"
+          <div className="space-y-8 border-t border-neutral-200 pt-8">
+            {skillGroups.map((group) => (
+              <section
+                key={group.id}
+                aria-labelledby={`skills-${group.id}`}
+                className="grid gap-3 md:grid-cols-[180px_1fr] md:gap-6"
               >
-                <SkillIcon name={skill.name} />
-                <span>{skill.label}</span>
-              </div>
+                <h3
+                  id={`skills-${group.id}`}
+                  className="text-sm font-medium leading-6 text-neutral-900 md:pt-2"
+                >
+                  {group.label}
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {group.skills.map((skill) => (
+                    <div
+                      key={skill.name}
+                      className="skill-tag inline-flex h-10 items-center gap-2 rounded-md border border-neutral-200 px-3 text-sm text-neutral-600 transition-colors"
+                    >
+                      <SkillIcon name={skill.name} />
+                      <span>{skill.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
             ))}
           </div>
         </section>
