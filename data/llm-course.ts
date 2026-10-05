@@ -28,6 +28,17 @@ const operationsSections: LessonSection[] = [
 ];
 
 const publishedLessons: Record<string, { description: string; sections: LessonSection[] }> = {
+  "nn-04-softmax": {
+    description: "How do arbitrary class scores become probabilities? Derive Softmax, explore temperature and keep the calculation numerically stable.",
+    sections: [
+      { id: "raw-scores", title: "Raw scores are not probabilities" },
+      { id: "shifting-scores", title: "Why shifting is not enough" },
+      { id: "exponentiate-normalise", title: "Exponentiate, then normalise" },
+      { id: "temperature", title: "Temperature and stability" },
+      { id: "summary", title: "What you have discovered" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
   "nn-03-loss": {
     description: "How can prediction errors become one number? Explore squared error, cross-entropy and the gradients that guide learning.",
     sections: [
