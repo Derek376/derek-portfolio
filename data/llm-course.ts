@@ -80,6 +80,17 @@ const publishedLessons: Record<string, { description: string; sections: LessonSe
       { id: "quiz", title: "Check your understanding" },
     ],
   },
+  "nn-01-neuron": {
+    description: "Build a fruit-guessing machine: from weighted clues and bias to artificial neurons, decision boundaries and multilayer networks.",
+    sections: [
+      { id: "guessing-fruit", title: "How do you guess a fruit?" },
+      { id: "neuron-structure", title: "Draw the neuron precisely" },
+      { id: "linear-boundaries", title: "The limit: flat boundaries" },
+      { id: "layers-and-networks", title: "Connect neurons into a network" },
+      { id: "summary", title: "What you have discovered" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
 };
 
 function lesson(number: string, slug: string, title: string): CourseLesson {

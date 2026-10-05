@@ -1,0 +1,301 @@
+import { GuessFruitExperiment, NeuronStructure, SingleNeuronExperiment, OneFeatureBoundary, TwoFeatureBoundary, MiddleInterval, XorProblem, FruitLayerExperiment, DenseNetwork } from "@/components/notes/NeuronFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { neuronQuiz } from "@/data/neuron-lesson";
+
+<h2 id="guessing-fruit">1. How do you guess a fruit?</h2>
+
+In the first chapter we collected our tools: vectors describe things with numbers, dot products combine or compare vectors, matrices transform spaces, gradients point uphill, and probabilities describe uncertainty. From this lesson onwards, we will use those parts to **design a small machine that makes decisions**.
+
+Our task is deliberately simple: **build a fruit-guessing machine**. Start with one small device, then add more devices and connect them into a network. Before naming the device, look at the problem it must solve.
+
+Imagine four fruits on a table: **apple, watermelon, lemon and grape**. I hide one and give you four clues, each represented by a score between zero and one:
+
+- **Size:** $0.5$, a medium-sized fruit.
+- **Colour:** $0.9$, quite red on our simplified colour scale.
+- **Sweetness:** $0.7$, fairly sweet rather than sour.
+- **Water content:** $0.55$, moderately juicy.
+
+These scores are **input features**. They are illustrative descriptions, not standard measurements of fruit.
+
+<GuessFruitExperiment />
+
+Compare the clues. A watermelon would be much larger, a grape much smaller. In this simplified game, a lemon would be less red and much more sour. **Apple** is the intended match.
+
+If I ask “Is it an apple?”, you might answer yes immediately. But your intuition has combined the clues with different levels of importance. **Redness and sweetness carry more weight**; size and water content play supporting roles.
+
+Give each clue a weight and add the weighted values. Do not worry about the exact weights yet: we choose them by hand for now, and later learn them from data.
+
+$$
+s=0.4x_1+2.8x_2+1.6x_3+0.4x_4.
+$$
+
+For the hidden fruit:
+
+$$
+s=0.4(0.5)+2.8(0.9)+1.6(0.7)+0.4(0.55)=4.06.
+$$
+
+But **is 4.06 high enough to mean apple?** A score alone gives no decision rule. Compare a small, less-red, sour fruit with features $(0.3,0.15,0.2,0.5)$:
+
+$$
+s=0.4(0.3)+2.8(0.15)+1.6(0.2)+0.4(0.5)=1.06.
+$$
+
+Choose a threshold between those two scores, say $2.4$. Instead of repeatedly asking whether the score exceeds $2.4$, subtract the threshold inside the formula:
+
+$$
+z=0.4x_1+2.8x_2+1.6x_3+0.4x_4-2.4.
+$$
+
+Now the rule is simple: **a positive score means apple**.
+
+$$
+\begin{aligned}
+z_{\text{apple}}&=4.06-2.4=1.66>0,\\
+z_{\text{other}}&=1.06-2.4=-1.34<0.
+\end{aligned}
+$$
+
+The added constant, here $b=-2.4$, is the **bias**. It acts as an adjustable threshold: changing it moves the point at which the device switches its decision.
+
+We now have **weighted sum plus bias, followed by a decision**. Both the weights and bias can eventually be learned from examples instead of being chosen by hand.
+
+<ThoughtExercise question="What is unreliable about choosing these weights and the threshold by intuition? How could we choose them more systematically?">
+
+They fit the examples we happened to consider, but may fail on other fruit. Collect many labelled examples, make predictions, measure the errors with a loss function, and adjust the weights and bias to reduce that loss. Gradient descent will provide the adjustment rule in Lesson 12.
+
+Hold out separate examples to check whether the model generalises. A low error on the examples used to choose the parameters does not guarantee reliable predictions on new fruit.
+
+</ThoughtExercise>
+
+<h2 id="neuron-structure">2. Draw the device precisely</h2>
+
+Write the four clues as an input vector and the four weights as another vector:
+
+$$
+\mathbf{x}=[x_1,x_2,x_3,x_4],\qquad
+\mathbf{w}=[w_1,w_2,w_3,w_4].
+$$
+
+Add the bias to their dot product:
+
+$$
+z=w_1x_1+w_2x_2+w_3x_3+w_4x_4+b
+=\mathbf{w}\cdot\mathbf{x}+b.
+$$
+
+The score might be positive or negative and need not lie between zero and one. For this **binary classification example**, pass it through the **sigmoid activation**:
+
+$$
+y=\sigma(z),\qquad \sigma(z)=\frac{1}{1+e^{-z}}.
+$$
+
+This gives a value between zero and one that we interpret as an **estimated apple probability**. A value close to one favours apple; a value close to zero favours not apple. The output range alone does not guarantee accurate or well-calibrated probabilities.
+
+Step back and look at what we built:
+
+**Inputs → multiply by weights → sum → add bias → apply an activation.**
+
+This device is an **artificial neuron**, one of the basic building blocks of a neural network.
+
+The name is inspired by the brain. Biological neurons receive signals and pass signals onwards, but this mathematical model is a very simplified abstraction, not a detailed simulation of a biological cell.
+
+<NeuronStructure />
+
+The calculation is familiar: $\mathbf{w}\cdot\mathbf{x}$ is the **dot product** from Lesson 2. Put several neurons side by side and stack their weights into a matrix: the layer computes $W\mathbf{x}+\mathbf{b}$, the affine transformation from Lesson 4, followed by an activation.
+
+Try the live version below. Each slider controls one feature. Raise colour and sweetness, then lower them. Their larger weights make the score change more than an equal-sized change in size or water content.
+
+<SingleNeuronExperiment />
+
+All four weights and the bias are **learnable parameters**. Training adjusts them to reduce prediction errors across labelled examples. These demonstrations keep them fixed so you can isolate the effect of the inputs.
+
+Sigmoid is our choice here because we want a binary probability. **A general neuron computes $y=f(z)$**, where $f$ may be sigmoid, ReLU or another activation. Many hidden-layer activations do not produce probabilities. Lesson 8 explains these choices.
+
+<h2 id="linear-boundaries">3. The limit: one neuron gives a straight boundary</h2>
+
+Our sigmoid device has a limitation: at a fixed probability threshold, it divides the input space with a **flat decision boundary**. It cannot bend that boundary around complicated data.
+
+Using a decision threshold of $0.5$:
+
+$$
+\sigma(z)>0.5\iff z>0.
+$$
+
+So the separating boundary lies where:
+
+$$
+\mathbf{w}\cdot\mathbf{x}+b=0.
+$$
+
+Build the geometry one dimension at a time.
+
+### One feature: a decision point
+
+Keep only size $x$. The score is:
+
+$$
+z=wx+b.
+$$
+
+Plot input size horizontally and score vertically: this is a **straight line**. For non-zero $w$, its intersection with the zero-score level is:
+
+$$
+x=-\frac{b}{w}.
+$$
+
+That is the decision point. Change the weight to tilt the line, or the bias to move it vertically. You can move one threshold, but you cannot create a separate middle interval.
+
+<OneFeatureBoundary />
+
+The teal samples are apples and the grey samples are not. Dashed rings mark misclassified samples. When $w=0$, the score is constant: there is no unique crossing. If $b=0$ too, every score is zero. In the experiments, a zero score is classified as not apple so the tie convention is consistent.
+
+### Two features: a decision line
+
+Add another feature. With colour $x_1$ and sweetness $x_2$:
+
+$$
+z=w_1x_1+w_2x_2+b.
+$$
+
+The graph is now a **plane**: two input coordinates define a horizontal position, and the score gives the height. The decision boundary is where that plane intersects the zero-score plane:
+
+$$
+w_1x_1+w_2x_2+b=0.
+$$
+
+For non-zero weights this is a straight line in the input plane. There are no squared terms or products between the input features. Adjusting the weights tilts the score plane; changing the bias raises or lowers it. **The surface stays flat, and the boundary stays straight.**
+
+<TwoFeatureBoundary />
+
+Could sigmoid bend the boundary? It is nonlinear, but it is strictly increasing and reaches $0.5$ exactly at $z=0$. It changes the score into a probability without changing the shape of this threshold boundary. Other fixed thresholds between zero and one likewise give an affine boundary. This argument applies to our sigmoid classifier, not to every possible activation and decision rule.
+
+The dimensions follow a pattern:
+
+- One input feature: the score graph is a line; its decision boundary is a point.
+- Two features: the score graph is a plane; its decision boundary is a line.
+- Three features: the decision boundary is a plane.
+- With $n$ features and a non-zero weight vector, the decision boundary is an $(n-1)$-dimensional **hyperplane**.
+
+A single affine-score sigmoid neuron can separate two classes if a suitable hyperplane separates them: the classes are **linearly separable**. Interleaved classes may require more.
+
+### A middle interval cannot be selected by one threshold
+
+Return to size alone. Suppose a suitable apple must be **medium-sized**: too small is unsuitable, and too large is unsuitable too. The positive examples occupy a middle interval.
+
+<MiddleInterval />
+
+The rule $wx+b>0$ can select values above a threshold or below one. It cannot select **only the values between two thresholds**. A bounded middle interval needs two decision points, beyond the ability of a single non-constant straight score line.
+
+### XOR: the two-dimensional version
+
+An especially clear example is **exclusive OR**, or **XOR**: the answer is yes when exactly one of two conditions is true.
+
+In fruit terms, perhaps you want something **large but not sweet, or sweet but not large**. Large and sweet together is no; neither is no.
+
+$$
+\begin{aligned}
+(0,0)&\longrightarrow0,\qquad (1,0)\longrightarrow1,\\
+(0,1)&\longrightarrow1,\qquad (1,1)\longrightarrow0.
+\end{aligned}
+$$
+
+<XorProblem />
+
+The yes points occupy opposite corners of a square; the no points occupy the other diagonal. **No single straight line separates them.** A single affine-score sigmoid classifier cannot represent this decision rule.
+
+<ThoughtExercise question="If one neuron cannot solve XOR, could adding a hidden layer help? How could two hidden neurons work together?">
+
+Yes. Two hidden threshold units can detect two different regions. One can ask whether at least one input is true (**OR**); the other whether both are true (**AND**). An output unit combines those signals to select OR but exclude AND.
+
+For binary inputs, define a step activation $s(t)$ that is one when $t>0$ and zero otherwise:
+
+$$
+\begin{aligned}
+h_1&=s(x_1+x_2-0.5),\\
+h_2&=s(x_1+x_2-1.5),\\
+y&=s(h_1-2h_2-0.5).
+\end{aligned}
+$$
+
+For $(0,0)$ both hidden outputs are zero, so the final answer is zero. For $(1,0)$ or $(0,1)$, only $h_1$ is one, so the answer is one. For $(1,1)$ both are one, so the answer returns to zero.
+
+This uses **two hidden neurons plus one output neuron**. Smooth sigmoid units can approximate the same behaviour with sufficiently steep transitions. The hidden nonlinear activations matter: stacking only affine transformations would still produce one affine transformation.
+
+</ThoughtExercise>
+
+<h2 id="layers-and-networks">4. Connect neurons into a network</h2>
+
+The first device answers only **“Is this an apple?”**. To choose among several fruit classes, give each class its own scoring neuron, all looking at the same four input features.
+
+The upgraded example uses **apple, banana, watermelon and lemon**. Each neuron produces an affine score, and the four scores form a vector:
+
+$$
+\mathbf{z}=W\mathbf{x}+\mathbf{b}.
+$$
+
+Scores may be negative and do not sum to one. Apply **Softmax** to convert the scores into one probability distribution:
+
+$$
+p_i=\frac{e^{z_i}}{\sum_j e^{z_j}},\qquad \sum_i p_i=1.
+$$
+
+Softmax compares all the scores together, unlike four independent sigmoid outputs. Lesson 11 will explain it in detail. For now, move the same four feature sliders and watch the class scores and probabilities change.
+
+<FruitLayerExperiment />
+
+Try increasing size and water content: the watermelon score becomes more competitive. The weights here are still hand-picked, based on illustrative fruit prototypes. They are not the result of training, and this toy classifier is not a reliable fruit recognition system.
+
+For transparency, the class score for prototype $\mathbf{c}_i$ is:
+
+$$
+z_i=3\left(2\mathbf{c}_i\cdot\mathbf{x}-\lVert\mathbf{c}_i\rVert^2\right).
+$$
+
+This is affine in $\mathbf{x}$, with weight vector $6\mathbf{c}_i$ and bias $-3\lVert\mathbf{c}_i\rVert^2$. It ranks prototypes in the same order as their negative squared distance from the input, because the omitted term $-3\lVert\mathbf{x}\rVert^2$ would be the same for every class.
+
+A row of neurons is a **layer**. Connect layers so that one layer's output becomes the next layer's input, and you have a **multilayer neural network**. With nonlinear hidden activations, multiple flat cuts can combine into more complex decision boundaries.
+
+<DenseNetwork />
+
+The diagram uses three inputs, four hidden neurons and two outputs to keep the connections readable. It illustrates the general architecture rather than the exact four-input fruit classifier above.
+
+A hidden layer computes:
+
+$$
+\mathbf{h}=f(W_1\mathbf{x}+\mathbf{b}_1),
+$$
+
+where the activation is applied to each component. A following layer computes:
+
+$$
+\mathbf{y}=g(W_2\mathbf{h}+\mathbf{b}_2).
+$$
+
+The output operation depends on the task: sigmoid for a binary probability, Softmax for mutually exclusive classes, or a different choice for regression. Hidden activations create useful intermediate features rather than necessarily representing probabilities themselves.
+
+Width, depth and activation choices affect the functions a network can represent. With suitable nonlinear activations and sufficient capacity, networks can approximate a broad range of functions. **That is a statement about representational ability**, not a guarantee that a particular network will learn every rule, train successfully or generalise to new data.
+
+Even large modern models build on weighted combinations, biases and nonlinear operations. Their full architectures also include mechanisms such as attention, residual connections and normalisation, which later lessons will introduce.
+
+<h2 id="summary">5. What you have discovered</h2>
+
+We turned a weighted fruit judgement into an artificial neuron:
+
+$$
+z=\mathbf{w}\cdot\mathbf{x}+b,\qquad y=f(z).
+$$
+
+- **Weights** determine how inputs contribute to the score. Their influence depends on both the weights and the scaling of the features.
+- **Bias** adds an offset and shifts the activation threshold. Weights and biases can be learned from labelled data.
+- **Activation** converts the score into an output. Sigmoid gives a binary probability in this example; other activations serve other purposes.
+- **One sigmoid neuron with an affine score** has a flat threshold boundary. It cannot select a middle interval or solve XOR on the raw inputs.
+- **Several class scores plus Softmax** produce a distribution over mutually exclusive classes.
+- **Nonlinear hidden layers** let a network combine simple operations into more complex functions and decision boundaries. Depth alone is insufficient if every layer remains affine.
+
+Next comes the activation function itself: **what gives a network its ability to bend?** Lesson 8 will compare the different choices.
+
+<h2 id="quiz">Check your understanding</h2>
+
+<LessonQuiz questions={neuronQuiz} />
