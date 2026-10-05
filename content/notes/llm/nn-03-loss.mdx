@@ -1,0 +1,215 @@
+import { GuessingFeedback, SquaredResiduals, LossComparison, CrossEntropyExperiment } from "@/components/notes/LossFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { lossQuiz } from "@/data/loss-lesson";
+
+<h2 id="measuring-errors">1. Both predictions are wrong — but equally wrong?</h2>
+
+Think of a number-guessing game. Someone chooses an integer between 1 and 100. You guess 50 and hear **“too low”**; you guess 88 and hear **“too high”**. Each answer tells you which way to move, so the search becomes more focused.
+
+<GuessingFeedback />
+
+Lesson 9 described training as repeatedly adjusting a network's parameters. But a network may have thousands of adjustable values and may output a whole probability distribution. What feedback tells it how to improve?
+
+We give it a **loss function**: a rule that compresses how a prediction compares with the target into **one numerical objective**. Differentiating that objective with respect to the parameters gives a direction for updates. The optimiser and learning rate determine how to take those updates; the loss value itself is not an update step.
+
+Start with a simpler task: predicting a continuous value. Suppose a house actually costs €300,000. Prediction A is €299,000; prediction B is €100,000. Both are wrong, but B is much further away. A useful objective must express that difference, rather than only returning “wrong”.
+
+For easier arithmetic, measure prices in thousands of euros: the target is $y=300$, and the predictions are $\hat y=299$ and $\hat y=100$.
+
+<ThoughtExercise question="Why not simply use prediction minus target as the loss, and average that difference over the examples?">
+
+Positive and negative errors can cancel. A prediction that is 10 too high and one that is 10 too low have average signed error zero, even though both are wrong. Minimising a signed difference also rewards increasingly negative predictions instead of agreement with the target. We need a measure that penalises deviations on either side.
+
+Taking an absolute value is one option; taking a square is another. The square gives a smooth objective and penalises larger deviations more strongly.
+
+</ThoughtExercise>
+
+<h2 id="mean-squared-error">2. Square the error: mean squared error</h2>
+
+Square each prediction error, then average over $n$ examples. This is **mean squared error (MSE)**:
+
+$$
+L_{\mathrm{MSE}}=\frac{1}{n}\sum_{i=1}^{n}(\hat y_i-y_i)^2.
+$$
+
+The hat marks a prediction; $y_i$ is the observed target. For the two house predictions:
+
+$$
+(299-300)^2=1,\qquad (100-300)^2=40{,}000.
+$$
+
+An error 200 times as large receives a squared penalty 40,000 times as large. These numbers use our chosen price units: scaling the targets changes the numerical loss.
+
+<SquaredResiduals />
+
+### The gradient supplies the feedback
+
+For one example, hold the true value $y$ fixed and differentiate the squared error with respect to the prediction:
+
+$$
+L(\hat y)=(\hat y-y)^2,
+\qquad
+\frac{dL}{d\hat y}=2(\hat y-y).
+$$
+
+- If the prediction is **too high**, this derivative is positive. A small move towards a lower prediction reduces the loss.
+- If it is **too low**, the derivative is negative. A small move towards a higher prediction reduces the loss.
+- The further the prediction is from the target, the larger the magnitude of this derivative.
+
+For the averaged loss, each prediction's derivative has the extra factor $1/n$:
+
+$$
+\frac{\partial L_{\mathrm{MSE}}}{\partial\hat y_i}
+=\frac{2}{n}(\hat y_i-y_i).
+$$
+
+The network does not usually adjust predictions directly. It adjusts parameters $\theta$, so the derivative must continue through the network by the **chain rule**:
+
+$$
+\nabla_\theta L
+=\frac{\partial L}{\partial\hat y}\nabla_\theta\hat y.
+$$
+
+MSE is a common objective for **regression**: predicting quantities such as prices, temperatures or demand. Other regression losses are useful too; squared error can be sensitive to outliers.
+
+<h2 id="classification-gradients">3. Squared error for classification: a weak signal</h2>
+
+Return to our fruit classifier. In a binary problem, let $y=1$ mean apple and let $p$ be the predicted probability of apple. Compare:
+
+$$
+p=0.9:\quad (p-1)^2=0.01,
+\qquad
+p=0.01:\quad (p-1)^2=0.9801.
+$$
+
+The confidently wrong prediction receives roughly 98 times the loss. But **training uses gradients, not just the size of the loss**.
+
+Differentiate with respect to the probability:
+
+$$
+\frac{dL}{dp}=2(p-1).
+$$
+
+At $p=0.01$, this is $-1.98$; at $p=0.001$, it is $-1.998$. As the probability of the correct answer approaches zero, the magnitude approaches two rather than growing without bound.
+
+### Follow the derivative through Sigmoid
+
+That probability derivative is only part of the picture. Our binary classifier produces a raw score, or **logit**, $z$, and then applies Sigmoid:
+
+$$
+p=\sigma(z),\qquad \frac{dp}{dz}=p(1-p).
+$$
+
+Combining the derivatives gives:
+
+$$
+\frac{dL_{\mathrm{MSE}}}{dz}=2(p-y)p(1-p).
+$$
+
+For a true apple, $y=1$, and a confidently wrong prediction with $p$ close to zero, the factor $p(1-p)$ is very small. The gradient with respect to the score therefore becomes small precisely when the prediction badly needs correcting.
+
+For example:
+
+$$
+p=0.01:\quad \frac{dL}{dz}=-0.019602,
+\qquad
+p=0.001:\quad \frac{dL}{dz}=-0.001996002.
+$$
+
+This is a reason cross-entropy is commonly paired with Sigmoid for binary classification. MSE can be used on probabilities, but the resulting optimisation behaviour differs.
+
+<ThoughtExercise question="For a certain correct label, what function of its predicted probability is zero at one, but grows without bound as the probability approaches zero?">
+
+The negative logarithm has exactly this shape:
+
+$$
+L=-\ln p.
+$$
+
+It is zero at $p=1$ and grows without bound as $p$ approaches zero from above. Its derivative with respect to $p$ is $-1/p$. Lesson 6 introduced the same idea as the surprise associated with an event: a true answer that the model considers unlikely is highly surprising.
+
+</ThoughtExercise>
+
+<h2 id="cross-entropy">4. Logarithmic loss: cross-entropy</h2>
+
+Let $p_c$ be the probability assigned to the **correct class**. For a single example with a known class label, cross-entropy is:
+
+$$
+L_{\mathrm{CE}}=-\ln p_c.
+$$
+
+We use the natural logarithm here. Lesson 6 used base-two logarithms to measure information in bits; changing the base scales the objective by a constant.
+
+For a correct class probability of $0.9$, the loss is approximately $0.105$. At $0.01$, it is approximately $4.605$; at $0.001$, approximately $6.908$. A tenfold reduction in probability adds $\ln 10$ to the loss. **The growth is logarithmic, not exponential.**
+
+<LossComparison />
+
+### Probability gradients and score gradients are different
+
+With respect to correct-class probability:
+
+$$
+\frac{dL}{dp_c}=-\frac{1}{p_c}.
+$$
+
+Its magnitude is 100 at $p_c=0.01$ and 1,000 at $p_c=0.001$. However, this does **not** mean the network's parameter gradients automatically become infinitely large.
+
+For binary targets, the complete loss is:
+
+$$
+L_{\mathrm{BCE}}=-\bigl[y\ln p+(1-y)\ln(1-p)\bigr].
+$$
+
+For the same Sigmoid score $p=\sigma(z)$, applying the chain rule simplifies the score derivative to:
+
+$$
+\frac{dL_{\mathrm{BCE}}}{dz}=p-y.
+$$
+
+When $y=1$ and $p$ is close to zero, this derivative stays close to $-1$, rather than disappearing through the extra Sigmoid factor found in squared error. That is the useful comparison: **cross-entropy preserves a corrective signal at the score even for a confident mistake**. Parameter gradients still depend on the rest of the network.
+
+### Try it on the fruit machine
+
+Choose whether the example really is an apple, then adjust the four features. Watch how the loss changes as the machine assigns more or less probability to that label.
+
+<CrossEntropyExperiment />
+
+If the true label is apple, $p_c=p$. If it is not apple, $p_c=1-p$. Changing the true label leaves the model's prediction unchanged but changes the loss: an objective compares a prediction with a target, rather than judging a prediction in isolation.
+
+The feature controls use the same illustrative, fixed classifier as Lesson 7. No parameters are being trained in this experiment.
+
+### More than two classes
+
+For $K$ mutually exclusive classes, with predicted probabilities $\hat p_k$ and target distribution $y_k$:
+
+$$
+L_{\mathrm{CE}}=-\sum_{k=1}^{K}y_k\ln\hat p_k.
+$$
+
+For a **one-hot target**, the correct class $c$ has $y_c=1$ and the other entries are zero. Only the correct-class term remains:
+
+$$
+L_{\mathrm{CE}}=-\ln\hat p_c.
+$$
+
+Average this loss across the batch to obtain the training objective. If targets are soft distributions instead of one-hot labels, more than one term contributes.
+
+Cross-entropy is a common classification objective. Softmax, in the next lesson, turns arbitrary scores into a distribution over mutually exclusive classes. Binary classification often uses Sigmoid instead. Practical implementations commonly compute the loss directly from logits using numerically stable expressions rather than separately taking the logarithm of rounded probabilities.
+
+<h2 id="summary">5. What you have discovered</h2>
+
+A **loss function** makes prediction quality a numerical objective that an optimiser can work with.
+
+- **MSE** averages squared errors and is common for continuous-value regression.
+- **Gradients** describe how the objective changes. Parameter updates depend on the chain rule, the optimiser and the learning rate.
+- **Sigmoid plus MSE** can produce a small score gradient for a confidently wrong prediction.
+- **Cross-entropy** uses negative log probability. It rewards assigning probability to the true label and penalises confident mistakes.
+- For **Sigmoid plus binary cross-entropy**, the score gradient simplifies to $p-y$.
+- The objective must fit the task, targets and outputs. No loss guarantees good generalisation or successful training on its own.
+
+We have now connected the prediction to an objective. Next: where do class probabilities come from when the network outputs arbitrary scores?
+
+<h2 id="quiz">Check your understanding</h2>
+
+<LessonQuiz questions={lossQuiz} />

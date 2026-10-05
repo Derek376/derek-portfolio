@@ -6,6 +6,7 @@ import VectorLesson from "@/content/notes/llm/math-01-vector.mdx";
 import OperationsLesson from "@/content/notes/llm/math-02-ops.mdx";
 import MatrixLesson from "@/content/notes/llm/math-03-matrix.mdx";
 import TransformationLesson from "@/content/notes/llm/math-04-transform.mdx";
+import LossLesson from "@/content/notes/llm/nn-03-loss.mdx";
 import NetworkLesson from "@/content/notes/llm/nn-03-network.mdx";
 import ActivationLesson from "@/content/notes/llm/nn-02-activation.mdx";
 import NeuronLesson from "@/content/notes/llm/nn-01-neuron.mdx";
@@ -14,6 +15,7 @@ import GradientLesson from "@/content/notes/llm/math-05-gradient.mdx";
 import { courseChapters, courseLessons } from "@/data/llm-course";
 
 const lessonContent = {
+  "nn-03-loss": LossLesson,
   "math-01-vector": VectorLesson,
   "math-02-ops": OperationsLesson,
   "math-03-matrix": MatrixLesson,

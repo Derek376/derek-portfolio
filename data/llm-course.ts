@@ -28,6 +28,17 @@ const operationsSections: LessonSection[] = [
 ];
 
 const publishedLessons: Record<string, { description: string; sections: LessonSection[] }> = {
+  "nn-03-loss": {
+    description: "How can prediction errors become one number? Explore squared error, cross-entropy and the gradients that guide learning.",
+    sections: [
+      { id: "measuring-errors", title: "How wrong is a prediction?" },
+      { id: "mean-squared-error", title: "Mean squared error" },
+      { id: "classification-gradients", title: "A weak classification signal" },
+      { id: "cross-entropy", title: "Cross-entropy" },
+      { id: "summary", title: "What you have discovered" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
   "math-01-vector": {
     description: "Computers only understand numbers. How can they tell that a cat and a tiger are more alike than a cat and a goldfish?",
     sections: vectorSections,
