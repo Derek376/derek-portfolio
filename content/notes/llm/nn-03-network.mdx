@@ -1,0 +1,180 @@
+import { NetworkFruitExperiment, FullyConnectedNetwork, ParameterCount, TrainingCycle } from "@/components/notes/NetworkFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { networkQuiz } from "@/data/network-lesson";
+
+<h2 id="connecting-neurons">1. One neuron is not enough: connect a network</h2>
+
+In the previous two lessons we built our fruit-guessing machine from its parts. Lesson 7 introduced the **neuron**: weighted sum, bias and activation. Lesson 8 showed why **nonlinear activations** let multiple layers represent more than one affine transformation.
+
+Now put the parts together into a **neural network**, then ask how it learns.
+
+Recall the arrangement from the end of Lesson 7. Give each fruit class a scoring neuron, put the neurons side by side, and use Softmax to convert their scores into a probability distribution. **That row of scoring units is a layer.** Revisit it below.
+
+<NetworkFruitExperiment />
+
+The important next step is to **use one layer's output as the next layer's input**. Connect several layers, with nonlinear activations between hidden layers, and we obtain a multilayer neural network.
+
+- The **input layer** receives the original features. Here it simply represents four input values, rather than four learnable transformations.
+- **Hidden layers** produce intermediate representations between the input and final prediction. “Hidden” means they are internal to the model, not that their values are impossible to inspect.
+- The **output layer** produces the scores or answers needed for the task. In this classifier, Softmax turns the final scores into probabilities over four mutually exclusive fruit classes.
+
+<FullyConnectedNetwork />
+
+The diagram is **fully connected**: every unit in a layer receives input from every unit in the preceding layer. Other neural architectures use different connectivity; this is our starting example, not a rule for every network.
+
+The number of successive learnable layers describes the network's **depth**; the number of units in a layer describes its **width**. Counting conventions vary, so be explicit: this diagram has four feature columns and **three learnable affine layers**, two of which are hidden. The widths are:
+
+$$
+4\longrightarrow5\longrightarrow5\longrightarrow4.
+$$
+
+As Lesson 8 established, nonlinear hidden activations matter. If all those layers are affine with no intervening nonlinearity, the whole stack is still one effective affine transformation.
+
+<h2 id="network-parameters">2. The whole network is one function with parameters</h2>
+
+Do not let the wiring diagram make the network seem mysterious. Input features enter, each hidden layer applies an affine transformation and activation, and the result passes onwards.
+
+For layer $l$, write:
+
+$$
+\mathbf{h}^{(l)}=f_l\left(W_l\mathbf{h}^{(l-1)}+\mathbf{b}_l\right),
+\qquad\mathbf{h}^{(0)}=\mathbf{x}.
+$$
+
+The final layer uses the output operation appropriate to the task. Looking at the whole network from outside, it is **one function**:
+
+$$
+\hat{\mathbf{y}}=F(\mathbf{x};\theta),
+\qquad
+\theta=\{W_1,\mathbf{b}_1,W_2,\mathbf{b}_2,\ldots\}.
+$$
+
+The hat marks a **prediction**. The symbol $\theta$ collects the learnable parameters: in this network, all the weights and biases. Fix their values and the function gives a prediction for each input. Change their values and you change the model's decision rule.
+
+### How many parameters are there?
+
+A dense layer with $n$ inputs and $m$ outputs has an $m\times n$ weight matrix and one bias for each output:
+
+$$
+N_{\text{parameters}}=mn+m.
+$$
+
+Count the small network in Figure 9-1:
+
+<ParameterCount />
+
+The first layer has $20$ weights and $5$ biases; the second has $25$ weights and $5$ biases; the third has $20$ weights and $4$ biases:
+
+$$
+(5\cdot4+5)+(5\cdot5+5)+(4\cdot5+4)=25+30+24=79.
+$$
+
+Even this small network has 79 adjustable numbers. Larger models may have enormous parameter collections, but the underlying idea of fitting numerical parameters remains the same.
+
+### What determines the network's behaviour?
+
+The **architecture** constrains which functions can be represented. The **parameter values** choose a particular function within those constraints. Feature definitions, preprocessing and the output interpretation also affect what the model does; parameters are not independent of those choices.
+
+Within a fixed setup, changing the weights and biases changes the predictions. It can make the same architecture useful or useless for the fruit task.
+
+<ThoughtExercise question="A network can have thousands or millions of parameters. We cannot sensibly guess them all by hand. Where could useful parameter values come from?">
+
+Learn them from data. Make predictions on examples with known targets, measure the error with a loss function, and adjust the parameters to improve that objective. The usual mechanism is gradient-based optimisation: gradients describe how each parameter affects the loss, and an optimiser chooses the update.
+
+The architecture and data still matter. Training is a method for finding useful parameter values, not a guarantee that any architecture or dataset will produce a good model.
+
+</ThoughtExercise>
+
+<h2 id="training-loop">3. Training: let data determine the parameters</h2>
+
+At the start of training, weights are usually initialised with small random values chosen according to an initialisation scheme; biases may start at zero. These values have not yet been fitted to the task, so the network's predictions are typically poor.
+
+In **supervised learning**, we have examples with known target labels. Training repeatedly adjusts the parameters to make predictions more useful according to a **loss function**.
+
+Think back to manually increasing the redness weight and choosing a threshold in Lesson 7. We changed parameters to make a few examples classify correctly. Training automates this idea and applies it to many examples, using a repeatable numerical objective instead of intuition alone.
+
+<TrainingCycle />
+
+### The four steps
+
+**1. Forward pass.** Feed a batch of inputs through the network to obtain predictions:
+
+$$
+\hat{\mathbf{y}}_i=F(\mathbf{x}_i;\theta).
+$$
+
+**2. Calculate the loss.** Compare predictions with the batch's targets. For a batch $B$, a common objective averages the per-example losses:
+
+$$
+L_B(\theta)=\frac{1}{|B|}\sum_{i\in B}\ell\left(F(\mathbf{x}_i;\theta),\mathbf{y}_i\right).
+$$
+
+The loss converts “how wrong were the predictions?” into a number we can optimise. Its form depends on the task.
+
+**3. Compute gradients.** Use backpropagation to calculate the derivatives of the loss with respect to the parameters:
+
+$$
+\nabla_\theta L_B.
+$$
+
+Each component tells us how a small change in one parameter would change the loss locally. Backpropagation computes these derivatives efficiently; it does not itself decide the learning rate or perform the optimiser's update.
+
+**4. Update parameters.** A basic gradient-descent step is:
+
+$$
+\theta\leftarrow\theta-\eta\nabla_\theta L_B,
+\qquad\eta>0.
+$$
+
+The **learning rate** $\eta$ controls the step size. More sophisticated optimisers modify how the gradients are used. Repeat the process with further batches.
+
+A pass through the training dataset is an **epoch**. One parameter update is an **iteration** or training step; many iterations may occur within an epoch.
+
+The goal is to improve the objective over training. Individual batch losses can fluctuate, and updates with an unsuitable learning rate can make things worse. Stop according to a training plan and evaluation evidence, rather than assuming every step must improve or that training loss should reach zero.
+
+### A map of the next lessons
+
+Each part of this loop will receive its own explanation:
+
+- **Loss functions — Lesson 10:** turn prediction errors into a comparable numerical objective.
+- **Softmax — Lesson 11:** understand how class scores become a probability distribution.
+- **Gradient descent and optimisers — Lesson 12:** use gradients to choose parameter updates and step sizes.
+- **Backpropagation — Lesson 13:** efficiently compute the loss derivatives through the network.
+
+### Training and inference are different
+
+**Training** adjusts parameters. In this supervised example it uses target labels, a loss, gradients and optimiser updates. These additional computations and stored intermediate values usually make it more expensive than an ordinary forward pass.
+
+**Inference** uses the fitted parameters to make predictions on new inputs. The parameters normally remain fixed during inference; an ordinary prediction does not run an optimiser update.
+
+That also explains the experiment at the start of this lesson: moving its sliders changes the **inputs**, while its hand-picked weights remain fixed. It demonstrates inference, not learning. We will introduce actual parameter updates in the optimisation lessons.
+
+A chatbot generating a response similarly uses a trained model to predict outputs; generation alone does not imply that its weights are being updated by your conversation.
+
+### Check performance beyond the training examples
+
+A network can improve its training loss while performing poorly on new data. That is why we evaluate on held-out examples. **Validation data** helps guide model choices; a separate **test set** assesses the final setup. This checks generalisation rather than only how well the model fits the examples used for updates.
+
+<h2 id="summary">4. What you have discovered</h2>
+
+A neural network connects layers so that one layer's output becomes the next one's input. Nonlinear hidden activations make this more expressive than a single affine transformation.
+
+The whole network is a parameterised function:
+
+$$
+\hat{\mathbf{y}}=F(\mathbf{x};\theta).
+$$
+
+- **Architecture:** input features, hidden layers, outputs, connectivity, depth and width.
+- **Parameters:** weights and biases. The dense $4\to5\to5\to4$ example has 79 of them.
+- **Supervised training:** fit parameters using examples with known targets.
+- **Training loop:** forward pass, calculate loss, compute gradients, update parameters, then repeat.
+- **Inference:** predict with fitted parameters, normally without changing them.
+- **Generalisation:** evaluate on held-out data; low training loss alone is insufficient.
+
+This gives us the overall picture. Next we will zoom in on the loop's second step: **how do we measure prediction error with a loss function?**
+
+<h2 id="quiz">Check your understanding</h2>
+
+<LessonQuiz questions={networkQuiz} />

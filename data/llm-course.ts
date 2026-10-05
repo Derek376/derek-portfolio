@@ -103,6 +103,16 @@ const publishedLessons: Record<string, { description: string; sections: LessonSe
       { id: "quiz", title: "Check your understanding" },
     ],
   },
+  "nn-03-network": {
+    description: "Connect neurons into a network, count its parameters, and understand the loop that turns labelled examples into learned weights.",
+    sections: [
+      { id: "connecting-neurons", title: "Connect a network" },
+      { id: "network-parameters", title: "One function with parameters" },
+      { id: "training-loop", title: "Training: let data set the parameters" },
+      { id: "summary", title: "What you have discovered" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
 };
 
 function lesson(number: string, slug: string, title: string): CourseLesson {
