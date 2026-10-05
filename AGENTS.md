@@ -7,3 +7,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Course lesson numbering
+
+When adding or renaming a course lesson, verify the existing chapter order first.
+Every lesson must have a unique global lesson number and full slug. Neural network
+chapter slugs must use consecutive local prefixes `nn-01-` through `nn-07-` in
+chapter order. Do not copy incorrect numbering from the source website. Keep MDX
+filenames, imports, course data and route registry consistent; preserve published
+old URLs with redirects when renaming. Run the course validation through the build.

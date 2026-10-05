@@ -1,0 +1,238 @@
+import { OvershootFigure, LearningRateFigure, BatchPathsFigure, FruitTrainingExperiment } from "@/components/notes/OptimiserFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { optimiserQuiz } from "@/data/optimiser-lesson";
+
+<h2 id="overshooting">1. One update — and the loss increases</h2>
+
+We now have a network, a loss function and class probabilities. How do we change the parameters to reduce the loss?
+
+Lesson 5 established that the gradient points towards **steepest local ascent**. Its negative gives a downhill direction. We might try subtracting the gradient directly, but a direction is only local information: taking a large step can carry us past the valley floor.
+
+To see the arithmetic, isolate one weight $w$ and use an illustrative loss:
+
+$$
+L(w)=1.5(w-4.5)^2.
+$$
+
+This is a toy quadratic, not the exact loss of our fruit network. Its minimum is at $w=4.5$. Starting at $w=0.5$:
+
+$$
+L(0.5)=1.5(-4)^2=24,\qquad
+\frac{dL}{dw}=3(w-4.5)=-12.
+$$
+
+Subtract the whole gradient:
+
+$$
+w_{\mathrm{new}}=0.5-(-12)=12.5.
+$$
+
+Now the loss is:
+
+$$
+L(12.5)=1.5(8)^2=96.
+$$
+
+**The loss rose from 24 to 96.** The initial direction was correct, but the step was too large.
+
+<OvershootFigure />
+
+<ThoughtExercise question="How could we keep the downhill direction while controlling the size of the update?">
+
+Multiply the gradient by a positive learning rate $\alpha$:
+
+$$
+w\leftarrow w-\alpha\frac{dL}{dw}.
+$$
+
+For example, with $\alpha=0.1$, the new weight is $0.5+1.2=1.7$, and the loss is $1.5(1.7-4.5)^2=11.76$, below the initial 24.
+
+A smaller step helps here, but there is no single learning rate that is suitable for every loss, optimiser and dataset.
+
+</ThoughtExercise>
+
+<h2 id="learning-rate">2. Learning rate: how large should the step be?</h2>
+
+For a parameter vector $\theta$, ordinary gradient descent uses:
+
+$$
+\theta_{t+1}=\theta_t-\alpha_t\nabla_\theta L(\theta_t).
+$$
+
+The **learning rate** scales the update. It is not the distance moved on its own: the gradient magnitude also matters.
+
+- Too large a rate can cause overshooting, oscillation or divergence.
+- Too small a rate can make progress unnecessarily slow.
+- A suitable rate depends on the curvature of the loss and the parameterisation, among other factors.
+
+For our quadratic, the distance from the minimum obeys:
+
+$$
+w_{t+1}-4.5=(1-3\alpha)(w_t-4.5).
+$$
+
+It shrinks when $|1-3\alpha|<1$, so a constant rate converges here when:
+
+$$
+0<\alpha<\frac23.
+$$
+
+At $\alpha=2/3$, the weight alternates across the minimum with equal distance and constant loss. Above this value it diverges. These thresholds belong to **this quadratic**, not to neural networks in general.
+
+<LearningRateFigure />
+
+### Change the learning rate during training
+
+A **schedule** changes the learning rate over time. A decay schedule, such as cosine decay, lowers it during part of training. **Warmup** is different: it starts with a small rate and increases it towards the intended rate before a later schedule may decay it.
+
+There is no universal numerical range. A value that works for one optimiser and data scale may fail for another.
+
+### Train the fruit machine yourself
+
+Simplify the machine to one feature: colour, scored from zero to one. We use eight labelled teaching examples, four apples and four non-apples. The classifier has only two learnable parameters:
+
+$$
+z_i=wx_i+b,\qquad p_i=\sigma(z_i).
+$$
+
+Binary Sigmoid can also be written as a two-class Softmax on logits $[z_i,0]$. These are **equivalent views of one output calculation**, not two activations that must be applied in sequence.
+
+The objective is mean binary cross-entropy:
+
+$$
+L(w,b)=\frac18\sum_{i=1}^{8}
+-\bigl[y_i\ln p_i+(1-y_i)\ln(1-p_i)\bigr].
+$$
+
+Using Lesson 10's score derivative $p_i-y_i$, the two gradients are:
+
+$$
+\frac{\partial L}{\partial w}=\frac18\sum_i(p_i-y_i)x_i,
+\qquad
+\frac{\partial L}{\partial b}=\frac18\sum_i(p_i-y_i).
+$$
+
+Calculate both at the current parameters, then update both together. Start with a few manual steps; compare the learning rates after resetting.
+
+<FruitTrainingExperiment />
+
+At $w=b=0$, every example has probability $0.5$ and loss $\ln2\approx0.6931$. This is an initial baseline, **not the maximum possible cross-entropy**: confident wrong predictions can have arbitrarily large loss.
+
+The experiment displays current gradients and appends each update to the record table. It uses all eight examples per update. The loss is computed directly from logits with a stable expression, avoiding logarithms of rounded probabilities.
+
+The learning-rate range belongs to this tiny example. A rate of six is not guaranteed to diverge here just because it is a large number; the quadratic above gives a clearer controlled demonstration of overshooting. Neither decreasing training loss nor separating these eight examples establishes good performance on unseen fruit.
+
+<h2 id="gradient-data">3. Which examples should determine each gradient?</h2>
+
+So far we have computed a gradient from the **entire training dataset** before each update:
+
+$$
+L(\theta)=\frac1N\sum_{i=1}^{N}\ell_i(\theta),
+\qquad
+\nabla L(\theta)=\frac1N\sum_{i=1}^{N}\nabla\ell_i(\theta).
+$$
+
+For eight examples this is convenient. For a large dataset, processing every example before every update becomes expensive.
+
+As a deliberately simplified serial estimate, a billion examples at one millisecond each would take about 278 hours for one pass, even before additional gradient work. Real systems batch and parallelise computation, so this is an illustration of scale rather than a training-time prediction.
+
+Full-batch training can still be practical for small datasets. The problem is the per-update cost as the dataset grows.
+
+<ThoughtExercise question="What trade-off lies between using the whole dataset for an update and using just one example?">
+
+A full-dataset gradient uses all examples but costs a full pass for every update. A single-example gradient is cheap but can vary substantially from example to example.
+
+A **mini-batch** uses a subset of examples, averages their gradients and updates the parameters. It reduces the per-update work while providing a less noisy estimate than a single example, and often fits parallel hardware well.
+
+</ThoughtExercise>
+
+<h2 id="mini-batch">4. Mini-batch SGD: trade some precision for cheaper updates</h2>
+
+For a batch $\mathcal B_t$ of $B$ examples, estimate the gradient as:
+
+$$
+\mathbf g_t=\frac1B\sum_{i\in\mathcal B_t}\nabla\ell_i(\theta_t),
+\qquad
+\theta_{t+1}=\theta_t-\alpha_t\mathbf g_t.
+$$
+
+This is **mini-batch stochastic gradient descent**. The term SGD is often used for mini-batch updates, although its strict single-example form uses $B=1$.
+
+A common arrangement is to shuffle the data and split it into batches. Independently sampling batches is another possibility. With appropriate unbiased sampling, the batch gradient estimates the full-data gradient, but individual updates still fluctuate.
+
+<BatchPathsFigure />
+
+Noise can change how optimisation explores a loss surface and may affect generalisation. It is **not a guarantee** of escaping local minima or finding a better solution. Full-batch gradients are exact for the chosen dataset objective; mini-batch gradients are cheaper estimates of that objective.
+
+An **epoch** is one pass through the dataset. With batches of size $B$ and the final partial batch included, it has approximately:
+
+$$
+\left\lceil\frac NB\right\rceil
+$$
+
+updates. If that last batch is dropped, the count uses the floor instead. Batch sizes and epoch counts depend on the task, memory, hardware and stopping criterion rather than a universal rule.
+
+<h2 id="momentum-adam">5. Narrow valleys, momentum and Adam</h2>
+
+In a narrow valley, the loss changes sharply across one direction but gently along another. Plain gradient descent may zigzag across the steep direction while progressing slowly along the valley.
+
+### Momentum remembers recent gradients
+
+One convention uses an exponential moving average:
+
+$$
+\mathbf v_t=\beta\mathbf v_{t-1}+(1-\beta)\mathbf g_t,
+\qquad
+\theta_{t+1}=\theta_t-\alpha\mathbf v_t.
+$$
+
+The coefficient $\beta$ controls how much history is retained. Alternating gradient components can partially cancel, while consistent components persist. This can smooth updates, but does not guarantee faster convergence in every setting. Another common momentum convention omits the factor $1-\beta$, which changes the effective scale of the update.
+
+### Adam tracks first and second moments
+
+**Adam** combines a moving average of gradients with a moving average of their elementwise squares:
+
+$$
+\mathbf m_t=\beta_1\mathbf m_{t-1}+(1-\beta_1)\mathbf g_t,
+$$
+
+$$
+\mathbf v_t=\beta_2\mathbf v_{t-1}+(1-\beta_2)\mathbf g_t^2.
+$$
+
+Both averages normally start at zero. Bias correction compensates for their initial bias towards zero:
+
+$$
+\hat{\mathbf m}_t=\frac{\mathbf m_t}{1-\beta_1^t},
+\qquad
+\hat{\mathbf v}_t=\frac{\mathbf v_t}{1-\beta_2^t}.
+$$
+
+The update is applied elementwise:
+
+$$
+\theta_{t+1}=\theta_t-\alpha
+\frac{\hat{\mathbf m}_t}{\sqrt{\hat{\mathbf v}_t}+\varepsilon}.
+$$
+
+The denominator scales each parameter's update using recent squared gradient magnitudes. It does not simply count how often a parameter was updated. The small positive $\varepsilon$ stabilises division.
+
+Common starting coefficients are $\beta_1=0.9$ and $\beta_2=0.999$, but the learning rate and other choices still need tuning. Adam is widely used; SGD with momentum remains useful too. **AdamW** separates weight decay from the adaptive gradient update, and is common in Transformer training. Neither name implies a universally best optimiser.
+
+<h2 id="summary">6. What you have discovered</h2>
+
+**A gradient supplies local information; an optimiser turns it into a parameter update.**
+
+- **Learning rate** scales the update. An excessive step can increase loss even when the initial direction is downhill.
+- **Full-batch gradients** use every training example; **mini-batch gradients** reduce per-update work by using a subset.
+- **Batch noise** is a trade-off, not a promise of a better solution.
+- **Momentum** incorporates gradient history.
+- **Adam** combines first and second moment estimates with bias correction and elementwise scaling.
+- **Schedules** change the learning rate over time; warmup and decay have different roles.
+
+Our tiny training machine calculated its two gradients explicitly. Next, we will learn how **backpropagation** calculates gradients efficiently throughout a much larger network.
+
+<h2 id="quiz">Check your understanding</h2>
+
+<LessonQuiz questions={optimiserQuiz} />

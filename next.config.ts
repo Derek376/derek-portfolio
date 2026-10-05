@@ -5,6 +5,22 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/notes/llm/nn-03-loss",
+        destination: "/notes/llm/nn-04-loss",
+        permanent: true,
+      },
+      {
+        source: "/notes/llm/nn-04-softmax",
+        destination: "/notes/llm/nn-05-softmax",
+        permanent: true,
+      },
+      {
+        source: "/notes/llm/nn-05-sgd",
+        destination: "/notes/llm/nn-06-sgd",
+        permanent: true,
+      },
+
+      {
         source: "/notes/llm/math-05-prob",
         destination: "/notes/llm/math-06-prob",
         permanent: true,

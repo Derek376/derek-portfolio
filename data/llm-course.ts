@@ -28,7 +28,19 @@ const operationsSections: LessonSection[] = [
 ];
 
 const publishedLessons: Record<string, { description: string; sections: LessonSection[] }> = {
-  "nn-04-softmax": {
+  "nn-06-sgd": {
+    description: "A downhill direction is not enough. Explore learning rates, train a tiny classifier, and understand mini-batch gradients, momentum and Adam.",
+    sections: [
+      { id: "overshooting", title: "A step that raises the loss" },
+      { id: "learning-rate", title: "Learning rate and live training" },
+      { id: "gradient-data", title: "Which data determines the gradient?" },
+      { id: "mini-batch", title: "Mini-batch SGD" },
+      { id: "momentum-adam", title: "Momentum and Adam" },
+      { id: "summary", title: "What you have discovered" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
+  "nn-05-softmax": {
     description: "How do arbitrary class scores become probabilities? Derive Softmax, explore temperature and keep the calculation numerically stable.",
     sections: [
       { id: "raw-scores", title: "Raw scores are not probabilities" },
@@ -39,7 +51,7 @@ const publishedLessons: Record<string, { description: string; sections: LessonSe
       { id: "quiz", title: "Check your understanding" },
     ],
   },
-  "nn-03-loss": {
+  "nn-04-loss": {
     description: "How can prediction errors become one number? Explore squared error, cross-entropy and the gradients that guide learning.",
     sections: [
       { id: "measuring-errors", title: "How wrong is a prediction?" },
@@ -164,10 +176,10 @@ export const courseChapters = [
       lesson("07", "nn-01-neuron", "The structure of a neuron"),
       lesson("08", "nn-02-activation", "Activation functions"),
       lesson("09", "nn-03-network", "Neural networks and training"),
-      lesson("10", "nn-03-loss", "Loss functions"),
-      lesson("11", "nn-04-softmax", "Softmax"),
-      lesson("12", "nn-05-sgd", "Gradient descent and optimisers"),
-      lesson("13", "nn-06-backprop", "Backpropagation"),
+      lesson("10", "nn-04-loss", "Loss functions"),
+      lesson("11", "nn-05-softmax", "Softmax"),
+      lesson("12", "nn-06-sgd", "Gradient descent and optimisers"),
+      lesson("13", "nn-07-backprop", "Backpropagation"),
     ],
   },
   {
@@ -205,6 +217,25 @@ export const courseChapters = [
     ],
   },
 ];
+
+// Fail during development/build rather than publish duplicate course identifiers.
+const lessonNumbers = new Set<string>();
+const lessonSlugs = new Set<string>();
+for (const chapter of courseChapters) {
+  chapter.lessons.forEach((entry, index) => {
+    if (lessonNumbers.has(entry.number) || lessonSlugs.has(entry.slug)) {
+      throw new Error(`Duplicate course lesson number or slug: ${entry.number} / ${entry.slug}`);
+    }
+    lessonNumbers.add(entry.number);
+    lessonSlugs.add(entry.slug);
+    if (chapter.id === "neural-networks") {
+      const expectedPrefix = `nn-${String(index + 1).padStart(2, "0")}-`;
+      if (!entry.slug.startsWith(expectedPrefix)) {
+        throw new Error(`Neural network lesson ${entry.number} must use ${expectedPrefix}, received ${entry.slug}`);
+      }
+    }
+  });
+}
 
 export const courseLessons = courseChapters.flatMap((chapter) => chapter.lessons);
 export const availableLessonCount = courseLessons.filter((lesson) => lesson.available).length;
