@@ -1,0 +1,283 @@
+import { AffineStack, StepCurve, SigmoidCurve, TanhCurve, ReluCurve, ReluVariants, ActivationExperiment, IntervalExperiment } from "@/components/notes/ActivationFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { activationQuiz } from "@/data/activation-lesson";
+
+<h2 id="stacking-affine-layers">1. Does stacking more layers really make a network stronger?</h2>
+
+The fruit-guessing machine in the previous lesson ended with a sigmoid, $\sigma$, which turned a weighted score into an estimated probability. We introduced it briefly. Now ask the bigger question: **what does an activation function do, and why does a network need one?**
+
+We have already hit the same ceiling twice. Lesson 4 showed that composing linear transformations gives another linear transformation. Lesson 7 showed that a single affine-score sigmoid classifier has a straight decision boundary. This lesson tackles that limitation directly.
+
+Connect two layers, but put **no nonlinear activation** between them. Equivalently, use the identity activation $f(z)=z$.
+
+<AffineStack />
+
+The first layer gives:
+
+$$
+\mathbf{h}=W_1\mathbf{x}+\mathbf{b}_1.
+$$
+
+The second layer gives:
+
+$$
+\mathbf{y}=W_2\mathbf{h}+\mathbf{b}_2.
+$$
+
+Substitute the first expression into the second:
+
+$$
+\begin{aligned}
+\mathbf{y}&=W_2(W_1\mathbf{x}+\mathbf{b}_1)+\mathbf{b}_2\\
+&=(W_2W_1)\mathbf{x}+(W_2\mathbf{b}_1+\mathbf{b}_2).
+\end{aligned}
+$$
+
+The product $W_2W_1$ is another matrix; call it $W'$. The combined offset $W_2\mathbf{b}_1+\mathbf{b}_2$ is another vector; call it $\mathbf{b}'$. We are left with:
+
+$$
+\mathbf{y}=W'\mathbf{x}+\mathbf{b}'.
+$$
+
+**Two affine layers are equivalent to one effective affine layer.** The same substitution works for three layers or a hundred. Bias makes these transformations technically **affine**, rather than strictly linear, but it does not change the conclusion.
+
+Depth alone has not added nonlinear expressive power. A particular stack may also have rank limits caused by narrow intermediate layers, and its parameterisation can affect optimisation. None of that turns its input-output mapping into a nonlinear function.
+
+<h2 id="why-nonlinearity">2. What does “equivalent to one layer” mean?</h2>
+
+For a binary decision made by thresholding an affine score, the boundary has the form:
+
+$$
+\mathbf{w}\cdot\mathbf{x}+b=0.
+$$
+
+In two input dimensions, this is a straight line. In higher dimensions it is a hyperplane. The **score graph** with two inputs is a plane; its **decision boundary** is a line. These are different geometric objects.
+
+### A straight line cannot surround a circle
+
+Recall XOR from the previous lesson:
+
+$$
+(0,0)\mapsto0,\quad(1,0)\mapsto1,\quad(0,1)\mapsto1,\quad(1,1)\mapsto0.
+$$
+
+The positive examples lie on one diagonal and the negatives on the other. No single line separates them. A pure affine stack cannot fix this by adding more layers. Likewise, one affine threshold cannot enclose a circular region, a crescent, or an arbitrary irregular region.
+
+Imagine a sheet of paper. Affine transformations stretch, rotate, shear or translate it; it remains flat. A nonlinear transformation introduces a **bend or fold**. Combining transformations with bends can create more complex regions in the input space. This is an intuition rather than a literal description of every activation.
+
+<ThoughtExercise question="What could we insert between layers to stop the whole stack collapsing into one affine transformation? Take a moment to think.">
+
+Insert a **nonlinear activation function** after the weighted sum and bias:
+
+$$
+\mathbf{h}=f(W_1\mathbf{x}+\mathbf{b}_1),\qquad
+\mathbf{y}=W_2\mathbf{h}+\mathbf{b}_2.
+$$
+
+For a nonlinear $f$, we generally cannot absorb the activation into one effective matrix and bias. Repeated affine transformations plus nonlinear activations can build more complex functions. It is the nonlinearity, not simply renaming an operation an activation, that matters: the identity function would leave the original limitation intact.
+
+</ThoughtExercise>
+
+This function between layers is an **activation function**. It usually acts separately on each component of a hidden layer's score vector. Let us meet several common choices and see what their shapes imply.
+
+<h2 id="step-sigmoid-tanh">3. Step, sigmoid and tanh</h2>
+
+### Step: a hard switch
+
+The most direct choice switches between zero and one:
+
+$$
+s(z)=\begin{cases}
+0,&z<0,\\
+1,&z\geq0.
+\end{cases}
+$$
+
+<StepCurve />
+
+This is nonlinear, but it is **flat almost everywhere**. A small change to the input does nothing unless it crosses the jump. Its derivative is zero for non-zero inputs and undefined at zero. That makes the hard step unsuitable for ordinary gradient-based backpropagation: it supplies no useful local gradient on either side.
+
+It remains useful for explaining threshold logic. It is not the usual hidden activation in differentiably trained networks.
+
+### Sigmoid: a smooth switch
+
+Replace the sudden jump with a smooth S-shaped curve:
+
+$$
+\sigma(z)=\frac{1}{1+e^{-z}}.
+$$
+
+<SigmoidCurve />
+
+For any finite input, sigmoid gives an output strictly between zero and one. In a binary classification output layer, we can interpret this as an **estimated probability**. A hidden sigmoid activation is not automatically the probability of a particular event.
+
+Its derivative is:
+
+$$
+\sigma'(z)=\sigma(z)\bigl(1-\sigma(z)\bigr).
+$$
+
+At zero, its slope is $0.25$. Near either tail, the slope approaches zero.
+
+### Saturation: when the curve becomes insensitive
+
+For a large positive input, such as $z=10$, sigmoid is almost one. For $z=-10$, it is almost zero. Both ends are nearly flat. These are **saturation regions**: changing the input a little barely changes the output.
+
+When many small derivatives multiply through a deep network, the learning signal can become very small. We will revisit this **vanishing-gradient** problem when discussing training and backpropagation in Lessons 12 and 13. Activations are one part of that story; the weights and network architecture also matter.
+
+### Tanh: an S-curve around zero
+
+The **hyperbolic tangent**, or **tanh**, has a similar S-shape but a different range:
+
+$$
+\tanh(z)=\frac{e^z-e^{-z}}{e^z+e^{-z}}.
+$$
+
+<TanhCurve />
+
+Its output lies between minus one and one, and it passes through the origin. That allows positive and negative activations, unlike sigmoid's positive-only output. The relationship between the two functions is:
+
+$$
+\tanh(z)=2\sigma(2z)-1.
+$$
+
+Its derivative is:
+
+$$
+\frac{d}{dz}\tanh(z)=1-\tanh^2(z).
+$$
+
+The range is symmetric around zero, which can be helpful in some settings. **It does not guarantee that a layer's actual outputs have mean zero**, and it is not a universal guarantee of easier training. Tanh still saturates at both ends, where its derivative becomes small.
+
+<h2 id="relu-and-variants">4. ReLU: a simple bend</h2>
+
+Can we keep positive inputs responsive without compressing them into a flat upper tail? A simple answer is: **leave positive values unchanged and replace negative values with zero**.
+
+$$
+\operatorname{ReLU}(z)=\max(0,z).
+$$
+
+ReLU stands for **rectified linear unit**.
+
+<ReluCurve />
+
+Away from zero, its derivative is particularly simple:
+
+$$
+\operatorname{ReLU}'(z)=\begin{cases}
+0,&z<0,\\
+1,&z>0.
+\end{cases}
+$$
+
+At zero, the classical derivative does not exist: the left and right slopes disagree. Training implementations choose a convention at this one point, commonly zero.
+
+ReLU is cheap to calculate and does not saturate on its positive side. It became especially influential through image-classification networks such as **AlexNet in 2012** and remains widely used. It is not a probability function: its output has no upper bound.
+
+### Inactive and “dead” ReLU units
+
+A negative input gives zero output and zero local derivative. That does **not** mean that the unit is permanently dead: another example or a change elsewhere in the network might make its input positive.
+
+A unit is commonly called a **dead ReLU** when its inputs stay negative across the relevant examples, so its zero derivative prevents its own parameters from receiving useful updates along that path. This motivates alternatives with a responsive negative side.
+
+### Leaky ReLU
+
+Keep a small negative-side slope rather than making it completely flat:
+
+$$
+\operatorname{LeakyReLU}(z)=\begin{cases}
+\alpha z,&z<0,\\
+z,&z\geq0,
+\end{cases}
+\qquad 0<\alpha<1.
+$$
+
+The plot below uses $\alpha=0.1$ to make the negative slope visible. This is an illustrative choice, not a universal default. Leaky ReLU keeps a non-zero derivative on the negative side, although it retains a corner at zero when $\alpha\ne1$.
+
+### GELU
+
+The **Gaussian error linear unit**, or **GELU**, smoothly weights its input using the standard normal cumulative distribution function $\Phi$:
+
+$$
+\operatorname{GELU}(z)=z\Phi(z).
+$$
+
+A commonly used approximation is:
+
+$$
+\operatorname{GELU}(z)\approx
+\frac{z}{2}\left[1+\tanh\left(\sqrt{\frac{2}{\pi}}\left(z+0.044715z^3\right)\right)\right].
+$$
+
+This is the approximation used in Figure 8-6. GELU transitions smoothly around zero and can return small negative values; it is not merely a hard gate with its corner rounded off.
+
+<ReluVariants />
+
+GELU is a common choice in Transformer feed-forward blocks. Activation choices differ across architectures; ReLU, GELU and other families are not interchangeable claims about every Transformer. The useful point here is how their **shapes and local slopes** differ.
+
+Now install four choices into the apple neuron from Lesson 7. Change the feature inputs, switch the activation, and observe the current point and local slope.
+
+<ActivationExperiment />
+
+The weights and bias stay fixed. The score can vary from $-2.4$ to $2.8$ with these feature ranges, while the graph shows a wider input range to reveal the tails. The readout reports the activation's derivative with respect to its **score**, not the entire loss gradient with respect to the model's parameters.
+
+<h2 id="building-a-middle-interval">5. Return to the problem: can we select the middle?</h2>
+
+Do not lose sight of our starting problem. An affine stack collapses into one effective affine layer. In the previous lesson, a suitable apple occupied **a middle interval of sizes**, but a single affine threshold could select only one side of one decision point.
+
+Use two hidden neurons, each watching a different threshold. To make the logic transparent, use the step activation defined above:
+
+$$
+\begin{aligned}
+h_1&=s(x-0.4),&&\text{large enough?}\\
+h_2&=s(x-0.7),&&\text{too large?}\\
+y&=h_1-h_2.
+\end{aligned}
+$$
+
+The hidden nonlinearities create two switches, and an affine output unit subtracts their values. Try three inputs:
+
+- **Too small**, $x=0.2$: both switches are off, so $h_1=0$, $h_2=0$, and $y=0$.
+- **Suitable**, $x=0.55$: the first switch is on but the second is off, so $h_1=1$, $h_2=0$, and $y=1$.
+- **Too large**, $x=0.85$: both switches are on, so $h_1=1$, $h_2=1$, and $y=0$.
+
+<IntervalExperiment />
+
+Be precise about the endpoints. Our step convention is $s(0)=1$, so:
+
+$$
+y=1\iff0.4\leq x<0.7.
+$$
+
+The left endpoint is included; the right is excluded. The open and filled circles in the experiment show this. Including both endpoints would require a different comparison at the second threshold.
+
+Without the hidden activations, the same subtraction gives:
+
+$$
+y=(x-0.4)-(x-0.7)=0.3.
+$$
+
+That is a **constant**, independent of the input: the affine stack has collapsed again. With the activations, the two thresholded lines combine to produce a middle band. This is the missing ingredient from Lesson 7.
+
+Replacing the steps with suitably scaled sigmoids gives a smooth approximation of the band, rather than an exact binary interval. ReLU can also build bounded regions using an appropriate combination of units, but simply replacing both steps with ReLU in this exact subtraction does **not** produce the same indicator: above $0.7$, the difference stays at $0.3$. The network's arrangement matters as well as its choice of activation.
+
+Nonlinear activations let multiple layers and units represent more complicated boundaries. More capacity does not guarantee that training discovers the desired function or that it generalises well; it supplies the possibility that the pure affine stack lacked.
+
+<h2 id="summary">6. What you have discovered</h2>
+
+Without nonlinear activations, a stack of affine layers is still one affine transformation. It has useful linear expressive power, but depth does not create nonlinear boundaries.
+
+- **Activation functions** introduce nonlinearity between weighted transformations. Identity activation does not solve the limitation.
+- **Step** makes an exact binary switch, but has zero derivative away from its jump and no derivative at the jump.
+- **Sigmoid** is smooth and ranges between zero and one; both tails saturate.
+- **Tanh** ranges between minus one and one; it also saturates and does not guarantee zero-mean activations.
+- **ReLU** is zero on the negative side and identity on the positive side. Its positive derivative is one, and its output is not a probability.
+- **Leaky ReLU** keeps a negative-side slope. **GELU** smoothly weights its input.
+- **Two nonlinear hidden units** can select the middle interval that a single affine threshold cannot.
+
+Neurons and activations are now in place. Next we will connect them into a network and ask **what it means for that network to learn**.
+
+<h2 id="quiz">Check your understanding</h2>
+
+<LessonQuiz questions={activationQuiz} />

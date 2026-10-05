@@ -91,6 +91,18 @@ const publishedLessons: Record<string, { description: string; sections: LessonSe
       { id: "quiz", title: "Check your understanding" },
     ],
   },
+  "nn-02-activation": {
+    description: "Why do a hundred affine layers still collapse into one? Explore the nonlinear bends that give neural networks more expressive power.",
+    sections: [
+      { id: "stacking-affine-layers", title: "Does stacking more layers help?" },
+      { id: "why-nonlinearity", title: "Why the boundary stays flat" },
+      { id: "step-sigmoid-tanh", title: "Step, sigmoid and tanh" },
+      { id: "relu-and-variants", title: "ReLU and its alternatives" },
+      { id: "building-a-middle-interval", title: "Build a middle interval" },
+      { id: "summary", title: "What you have discovered" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
 };
 
 function lesson(number: string, slug: string, title: string): CourseLesson {

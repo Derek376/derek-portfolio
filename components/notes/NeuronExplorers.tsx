@@ -5,7 +5,7 @@ import { appleBias, appleScore, appleWeights, fruitFeatures, fruitModels, fruitS
 
 const buttonClass = "border border-neutral-300 px-3 py-2 text-sm hover:border-[var(--accent)] focus-visible:outline-2 focus-visible:outline-[var(--accent)]";
 
-function FeatureControls({ values, onChange, prefix }: { values: number[]; onChange: (index: number, value: number) => void; prefix: string }) {
+export function FeatureControls({ values, onChange, prefix }: { values: number[]; onChange: (index: number, value: number) => void; prefix: string }) {
   return <div className="grid gap-5 sm:grid-cols-2">
     {fruitFeatures.map((feature, i) => <div key={feature.name}>
       <label htmlFor={`${prefix}-${i}`} className="flex justify-between gap-2 text-sm text-neutral-700">{feature.name}<output>{values[i].toFixed(2)}</output></label>

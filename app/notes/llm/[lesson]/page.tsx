@@ -6,6 +6,7 @@ import VectorLesson from "@/content/notes/llm/math-01-vector.mdx";
 import OperationsLesson from "@/content/notes/llm/math-02-ops.mdx";
 import MatrixLesson from "@/content/notes/llm/math-03-matrix.mdx";
 import TransformationLesson from "@/content/notes/llm/math-04-transform.mdx";
+import ActivationLesson from "@/content/notes/llm/nn-02-activation.mdx";
 import NeuronLesson from "@/content/notes/llm/nn-01-neuron.mdx";
 import ProbabilityLesson from "@/content/notes/llm/math-06-prob.mdx";
 import GradientLesson from "@/content/notes/llm/math-05-gradient.mdx";
@@ -19,6 +20,7 @@ const lessonContent = {
   "math-05-gradient": GradientLesson,
   "math-06-prob": ProbabilityLesson,
   "nn-01-neuron": NeuronLesson,
+  "nn-02-activation": ActivationLesson,
 };
 type Props = { params: Promise<{ lesson: string }> };
 
