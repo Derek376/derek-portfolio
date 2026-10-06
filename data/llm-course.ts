@@ -28,6 +28,17 @@ const operationsSections: LessonSection[] = [
 ];
 
 const publishedLessons: Record<string, { description: string; sections: LessonSection[] }> = {
+  "nlp-01-ngram": {
+    description: "Can counting predict the next word? Build a conditional frequency table, explore context windows and see why unseen combinations cause trouble.",
+    sections: [
+      { id: "predicting-next-word", title: "Guessing the next word" },
+      { id: "ngram-definition", title: "N-grams and conditional counts" },
+      { id: "sparsity-context", title: "Short memory and sparse data" },
+      { id: "uses-limits", title: "Uses and limitations" },
+      { id: "summary", title: "What you have discovered" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
   "nn-07-backprop": {
     description: "How does an early weight affect the final loss? Follow the chain rule backwards, inspect every gradient, and update a tiny network.",
     sections: [

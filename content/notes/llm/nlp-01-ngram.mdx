@@ -1,0 +1,154 @@
+import { ContinuationCounts, ContextWindow, WeatherFrequencyTable, CountingExperiment } from "@/components/notes/NgramFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { ngramQuiz } from "@/data/ngram-lesson";
+
+<h2 id="predicting-next-word">1. How could a keyboard guess the next word?</h2>
+
+Imagine typing **“The weather…”** and seeing suggestions such as “is lovely”, “is nice” and “is hot”. How could a system produce these continuations?
+
+One simple method is to inspect previous text and **count what came next**. If the same phrase has often been followed by a particular continuation, offer that continuation again.
+
+<ContinuationCounts />
+
+This method does not need to check a weather forecast or represent the meaning of weather. It uses regularities in text. It is a useful historical starting point for language modelling, rather than a complete account of modern keyboard systems, which may also use neural models, personalisation and other signals.
+
+<ThoughtExercise question="If a model only looks at the final few words, can it use something you said much earlier in the conversation to choose the next word?">
+
+No. Two prefixes with the same final context receive the same distribution from this fixed-context model, even if their earlier content differs. Counting recent continuations can capture useful local patterns while missing information outside the chosen window.
+
+Producing a plausible continuation is therefore not evidence that the system understood the whole conversation.
+
+</ThoughtExercise>
+
+<h2 id="ngram-definition">2. Make the rule general: use an N-gram</h2>
+
+Rather than build a separate rule for every complete phrase, estimate the next token from a fixed recent context.
+
+An **N-gram** is a sequence of $N$ tokens. When predicting its final token, the model conditions on the preceding **$N-1$ tokens**:
+
+- **Unigram**, $N=1$: no preceding context; use overall token frequencies.
+- **Bigram**, $N=2$: use one preceding token.
+- **Trigram**, $N=3$: use two preceding tokens.
+
+The predicted token is included in $N$. A model using the previous two words is therefore a **trigram**, not a bigram.
+
+<ContextWindow />
+
+For a token sequence $w_1,\ldots,w_T$, the probability chain rule is:
+
+$$
+P(w_1,\ldots,w_T)=\prod_{t=1}^{T}P(w_t\mid w_1,\ldots,w_{t-1}).
+$$
+
+The N-gram assumption replaces the full prefix with the most recent $N-1$ tokens:
+
+$$
+P(w_t\mid w_1,\ldots,w_{t-1})
+\approx P(w_t\mid w_{t-N+1},\ldots,w_{t-1}).
+$$
+
+Near the beginning of a sentence, we must define how shorter contexts are handled. Practical models often use sentence-boundary markers. Our small experiment below omits them and counts only windows fully inside each sentence.
+
+### Train by counting, predict by looking up
+
+Given a context $c$, count how often each candidate token $w$ follows it. The basic **maximum-likelihood estimate** is:
+
+$$
+P(w\mid c)=\frac{C(c,w)}{\sum_{v\in\mathcal V}C(c,v)}.
+$$
+
+The denominator counts all **observed continuation events** for that context. It is not necessarily every occurrence of the context anywhere: an occurrence at the end of a sentence has no following token unless an end marker is included.
+
+Training a basic count model means extracting token windows and storing their frequencies. It does not require gradient descent or backpropagation.
+
+<WeatherFrequencyTable />
+
+The candidate “banana” was observed three times out of 10,000 continuation events, so its probability is:
+
+$$
+P(\text{banana}\mid\text{weather})=\frac3{10{,}000}=0.0003=0.03\%.
+$$
+
+The frequency table is a **conditional probability distribution**. Choosing the most likely continuation and sampling from the distribution are different prediction strategies.
+
+### Try an actual count table
+
+The following experiment counts windows in ten short English teaching sentences. Unlike the illustrative large counts above, every result here is derived from the displayed corpus.
+
+<CountingExperiment />
+
+Try these comparisons:
+
+- With **bigram**, “the weather” uses only “weather”. The corpus has four continuations “is” and one “forecast”, giving probabilities $4/5$ and $1/5$.
+- With **trigram**, the same prefix uses “the weather”. This corpus happens to contain the same five events, so the result matches here. A larger context does not necessarily change every prediction.
+- For **unigram**, the prefix is ignored and the distribution comes from overall word counts.
+- “purple dragon” has no observed continuation. Without smoothing, the conditional estimate has a zero denominator and is **undefined**, rather than a normalised all-zero distribution.
+
+<h2 id="sparsity-context">3. Short memory and sparse data</h2>
+
+Consider a sentence about a shy kitten that has never met a stranger. A completion far later in the sentence might depend on those earlier details. A short-context model cannot recover them once they leave its window.
+
+Why not increase $N$? Larger windows distinguish more contexts, but exact combinations become rarer. There may be many perfectly sensible contexts that never appeared in the training corpus.
+
+This is **data sparsity**:
+
+- For a **seen context**, an unseen continuation receives probability zero under the unsmoothed frequency estimate.
+- For an **unseen context**, the frequency estimate has no observed denominator.
+- Longer exact contexts often have fewer examples supporting each estimate.
+
+A single zero-probability event also makes an unsmoothed sequence probability zero when we multiply its conditional probabilities. “Not observed” does not mean “impossible in real language”.
+
+### Smoothing and backoff help, but do not solve everything
+
+**Add-one smoothing** adds a count of one to every candidate in a fixed vocabulary of size $V$:
+
+$$
+P_{+1}(w\mid c)=\frac{C(c,w)+1}{\sum_v C(c,v)+V}.
+$$
+
+This assigns positive probability to vocabulary words that were not observed after that context. For an entirely unseen context it produces a uniform distribution over that vocabulary. That distribution comes from the smoothing assumption, not new evidence.
+
+Enable smoothing in the experiment and compare the results. On a tiny corpus, adding one everywhere can substantially flatten the distribution. It is easy to understand, but often too crude for serious language modelling.
+
+Other methods include **backoff**, which uses shorter contexts when a longer context lacks evidence, and **interpolation**, which combines estimates from several orders. More sophisticated smoothing redistributes probability mass more carefully. These improve sparse estimates while retaining the limits of the chosen context representation.
+
+Words outside a fixed vocabulary need their own treatment, such as an unknown-token symbol. Add-one smoothing over the current vocabulary does not automatically cover every possible new word.
+
+<ThoughtExercise question="If the model has seen a continuation after 'cat', why does that not automatically teach it the same continuation after 'kitten'?">
+
+A basic word-level count table treats “cat” and “kitten” as different symbols with separate rows. It has no representation that says their meanings are related.
+
+In our corpus, their rows look similar because we explicitly included similar sentences for both. The model does not infer that similarity from the words themselves. Backoff or smoothing can provide fallback probabilities, but does not by itself give these symbols a shared semantic representation.
+
+The next lesson introduces word vectors as one way to represent relationships between words.
+
+</ThoughtExercise>
+
+<h2 id="uses-limits">4. What N-grams can and cannot do</h2>
+
+Many nearby word combinations are regular. “weather forecast” is more common than “weather banana”, and counts can capture that difference cheaply.
+
+Count-based language models have historically been useful for text suggestions, speech recognition and statistical machine translation. N-gram features can also be useful in text classification, including spam detection, even when that system is not itself generating language.
+
+Their strengths include simple training, inspectable counts and useful local patterns. Their limitations include short context, sparse combinations and the lack of learned semantic relationships between distinct word symbols.
+
+Tokenisation matters too. Word-level, character-level and other token choices produce different tables. Our experiment lowercases simple English word tokens, so its results should not be read as a general model of punctuation, multilingual text or sentence structure.
+
+N-grams remain a useful baseline and teaching tool. They are not a claim that all contemporary language systems simply consult a small count table.
+
+<h2 id="summary">5. What you have discovered</h2>
+
+**A language model assigns probabilities to possible next tokens. An N-gram model estimates them from local counts.**
+
+- **Order $N$** includes the predicted token, leaving $N-1$ context tokens.
+- **Training** counts observed windows; prediction looks up a conditional distribution.
+- **Sparsity** gives zero probabilities for unseen continuations and no raw estimate for entirely unseen contexts.
+- **Smoothing, backoff and interpolation** provide ways to use limited evidence more effectively.
+- **A fixed context window** ignores older information, and separate word symbols do not automatically share meaning.
+
+The next lesson asks how to turn a word into a representation that can express its relationship with other words.
+
+<h2 id="quiz">Check your understanding</h2>
+
+<LessonQuiz questions={ngramQuiz} />
