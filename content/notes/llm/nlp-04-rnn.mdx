@@ -1,0 +1,201 @@
+import { UnrolledRnn, RnnMemoryExperiment, MemoryDecay, RnnLongGapExperiment } from "@/components/notes/RnnFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { rnnQuiz } from "@/data/rnn-lesson";
+
+<h2 id="beyond-fixed-window">1. What happens to words outside the window?</h2>
+
+Consider this unfinished sentence:
+
+**“The kitten avoided traffic today because ___ …”**
+
+A plausible next word is “it”, referring to the kitten. But if a feedforward model receives only the last three word tokens, its input is **“traffic today because”**. The kitten is outside that window.
+
+The model might still make a plausible guess from local patterns. It cannot, however, use an earlier token that was never supplied. Two histories ending in the same three tokens receive the same distribution from this fixed-window model, even when their earlier subjects differ.
+
+Pronouns, earlier events and references between sentences can depend on information far back in the text. Enlarging a window provides more information, but still imposes a boundary.
+
+<ThoughtExercise question="Could the network carry a summary forward as it reads, instead of storing and concatenating every previous word?">
+
+Yes. A hidden state can be updated after each token and passed to the next step. Earlier information can then influence later predictions through that state.
+
+The state is a learned, finite representation—not a complete transcript. Giving a model this mechanism does not ensure that it preserves every important detail.
+
+</ThoughtExercise>
+
+<h2 id="recurrent-state">2. Give the network a hidden state</h2>
+
+A **recurrent neural network**, or **RNN**, reads a sequence one token at a time. Each step takes the current input vector and the previous hidden state, then produces a new state.
+
+For a simple tanh RNN:
+
+$$
+\mathbf h_t=\tanh(W_x\mathbf x_t+W_h\mathbf h_{t-1}+\mathbf b).
+$$
+
+Here $\mathbf x_t$ is the current token's embedding, while $\mathbf h_{t-1}$ carries information from earlier steps. The initial state $\mathbf h_0$ can be zero.
+
+This is equivalent to concatenating the two inputs and using one matrix:
+
+$$
+\mathbf h_t=\tanh\!\left(
+[W_x\;W_h]
+\begin{bmatrix}\mathbf x_t\\\mathbf h_{t-1}\end{bmatrix}
++\mathbf b\right).
+$$
+
+If input vectors have dimension $d$ and states have dimension $H$:
+
+$$
+W_x\in\mathbb R^{H\times d},\qquad
+W_h\in\mathbb R^{H\times H},\qquad
+\mathbf b\in\mathbb R^H.
+$$
+
+The operations are familiar: an affine transformation and a nonlinear activation. The change is the **connection through time**: the state produced at one step becomes an input to the next.
+
+<UnrolledRnn />
+
+For a language model, an output layer can turn the updated state into next-token probabilities:
+
+$$
+\mathbf z_t=U\mathbf h_t+\mathbf a,\qquad
+\mathbf p_t=\operatorname{softmax}(\mathbf z_t).
+$$
+
+After reading token $w_t$, this distribution predicts **$w_{t+1}$**. During training, the observed next token supplies the target. It must not be fed into the state before the prediction being evaluated.
+
+### One operation, reused throughout the sequence
+
+The same $W_x$, $W_h$ and $\mathbf b$ are reused at every step. Reading a longer sequence adds more applications of the same operation, not a new set of weights for each position.
+
+Unlike the previous feedforward model, a recurrent model has no architectural cutoff after a fixed number of recent tokens. Earlier inputs can influence later states. But its fixed-size state does not guarantee perfect or unlimited memory, and longer sequences still cost more computation.
+
+<h2 id="step-by-step">3. Calculate a tiny memory by hand</h2>
+
+Shrink the state to one number and choose a simple teaching rule:
+
+$$
+h_t=\tanh(0.6h_{t-1}+x_t),\qquad h_0=0.
+$$
+
+Give “kitten” an input signal $x_1=1.5$. Set the signals for “avoided”, “traffic”, “today” and “because” to zero. We work with this five-token subsequence, omitting the leading article from the earlier sentence.
+
+These are **hand-chosen inputs and a fixed weight**, not a trained language model. The scalar state represents one illustrative signal, not a human-readable coordinate we expect every real RNN to learn.
+
+The first update is:
+
+$$
+h_1=\tanh(0.6\times0+1.5)=\tanh(1.5)\approx0.9051.
+$$
+
+The subsequent zero-input updates give:
+
+$$
+\begin{aligned}
+h_2&=\tanh(0.6h_1)\approx0.4953,\\
+h_3&=\tanh(0.6h_2)\approx0.2887,\\
+h_4&=\tanh(0.6h_3)\approx0.1715,\\
+h_5&=\tanh(0.6h_4)\approx0.1026.
+\end{aligned}
+$$
+
+<RnnMemoryExperiment />
+
+Click **Read next token** to apply one update. Use **Previous token** to inspect an earlier state or **Reset** to return to the initial state.
+
+After five tokens in total—one signal token and four intervening tokens—the state retains about **11.3%** of its value immediately after “kitten”. The full-precision states are used in each calculation; the displayed values are rounded.
+
+The state is not a probability. This experiment does not implement an output layer that selects “it”; it shows the information that such a layer would receive **before** seeing that next token.
+
+<h2 id="long-range-limits">4. A long path for information—and gradients</h2>
+
+In this particular recurrence, every zero-input step multiplies the previous value by $0.6$ and applies tanh. For positive values, $\tanh(u)\leq u$, so after $g$ intervening zero-input tokens:
+
+$$
+0<h_{1+g}\leq0.6^g h_1.
+$$
+
+For comparison:
+
+$$
+0.6^5=0.07776,\qquad
+0.6^{20}\approx0.00003656.
+$$
+
+These are factors bounding the retained fraction, not the exact hidden states. The additional tanh operations make the actual states smaller. A tiny residual is not mathematically zero.
+
+<MemoryDecay />
+
+In a real RNN, new inputs are generally nonzero and the state is multidimensional. Its behaviour depends on the recurrent weights, activations and inputs. Not every state necessarily decays like this scalar example.
+
+### Backpropagation through time
+
+Training a recurrent model unrolls these operations and applies the chain rule backwards. This is **backpropagation through time**, or **BPTT**. Gradients from multiple time steps contribute to the shared parameters.
+
+For our scalar update, the local derivative is:
+
+$$
+\frac{\partial h_t}{\partial h_{t-1}}
+=0.6(1-h_t^2).
+$$
+
+The sensitivity of a later state to the state after the first token is a product:
+
+$$
+\frac{\partial h_{1+g}}{\partial h_1}
+=\prod_{j=2}^{1+g}0.6(1-h_j^2)
+\leq0.6^g.
+$$
+
+At zero gap the product is empty and equals one. For long gaps it becomes very small in this example, so a later loss can send only a weak gradient through this path to an earlier state.
+
+<RnnLongGapExperiment />
+
+Compare the **state value**, its **retained fraction**, and its **derivative** as you change the gap. Forward information fading and backward gradients shrinking are related here, but they are not the same quantity.
+
+### Vanishing and exploding gradients
+
+For the vector RNN, the local recurrent Jacobian is:
+
+$$
+J_t=\frac{\partial\mathbf h_t}{\partial\mathbf h_{t-1}}
+=\operatorname{diag}(1-\mathbf h_t^2)W_h.
+$$
+
+Propagating influence across many steps involves a product such as:
+
+$$
+\frac{\partial\mathbf h_T}{\partial\mathbf h_t}
+=J_TJ_{T-1}\cdots J_{t+1}.
+$$
+
+Products that shrink can cause **vanishing gradients**. Products that grow can cause **exploding gradients**. The scalar example above demonstrates shrinking; it does not demonstrate explosion with its fixed coefficient $0.6$.
+
+These effects can make long-range credit assignment difficult. They do not impose a universal maximum of five or ten tokens. Architecture, initialisation, optimisation, data and the task all affect what a recurrent model learns.
+
+Gradient clipping can help control large gradients, while truncated BPTT limits the backward span to manage training cost. Truncation also limits the direct gradient path through earlier steps. Neither method alone gives perfect long-term memory.
+
+<ThoughtExercise question="What if the network could choose which state information to keep, which to replace, and which to expose?">
+
+Selective updates could give useful information a better path through time. Instead of mixing everything with one fixed rule, learned gates could control retention and new information.
+
+The next lesson introduces LSTM cells, which use gates and a separate cell state. They improve the mechanism for carrying information, without guaranteeing that every detail survives indefinitely.
+
+</ThoughtExercise>
+
+<h2 id="summary">5. What you have discovered</h2>
+
+**An RNN carries a hidden state forward and reuses the same update rule as it reads a sequence.**
+
+- **Beyond a fixed window:** earlier tokens can affect later predictions through the state.
+- **A recurrent update:** combine the current input with the previous state, then apply an activation.
+- **Shared parameters:** every time step uses the same weights and biases.
+- **A numerical example:** our hand-built state falls from about $0.9051$ to $0.1026$ after four zero-signal updates.
+- **Long-range learning is difficult:** products of recurrent derivatives can shrink or grow, causing vanishing or exploding gradients.
+
+The next lesson explores **long short-term memory (LSTM)** and learned gates that regulate the flow of information.
+
+<h2 id="quiz">Check your understanding</h2>
+
+<LessonQuiz questions={rnnQuiz} />

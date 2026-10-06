@@ -28,6 +28,17 @@ const operationsSections: LessonSection[] = [
 ];
 
 const publishedLessons: Record<string, { description: string; sections: LessonSection[] }> = {
+  "nlp-04-rnn": {
+    description: "Can a network carry history beyond a fixed window? Follow a recurrent hidden state token by token, then explore fading signals and gradients through time.",
+    sections: [
+      { id: "beyond-fixed-window", title: "Beyond a fixed context window" },
+      { id: "recurrent-state", title: "Give the network a hidden state" },
+      { id: "step-by-step", title: "Update the memory step by step" },
+      { id: "long-range-limits", title: "Long gaps and gradient flow" },
+      { id: "summary", title: "What you have discovered" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
   "nlp-03-ffnn-lm": {
     description: "Look up word vectors, concatenate them, and predict the next word. Follow a tiny network numerically and see how it shares evidence across related contexts.",
     sections: [

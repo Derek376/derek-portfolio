@@ -6,6 +6,7 @@ import VectorLesson from "@/content/notes/llm/math-01-vector.mdx";
 import OperationsLesson from "@/content/notes/llm/math-02-ops.mdx";
 import MatrixLesson from "@/content/notes/llm/math-03-matrix.mdx";
 import TransformationLesson from "@/content/notes/llm/math-04-transform.mdx";
+import RnnLesson from "@/content/notes/llm/nlp-04-rnn.mdx";
 import FeedforwardLmLesson from "@/content/notes/llm/nlp-03-ffnn-lm.mdx";
 import WordVectorLesson from "@/content/notes/llm/nlp-02-word2vec.mdx";
 import NgramLesson from "@/content/notes/llm/nlp-01-ngram.mdx";
@@ -21,6 +22,7 @@ import GradientLesson from "@/content/notes/llm/math-05-gradient.mdx";
 import { courseChapters, courseLessons } from "@/data/llm-course";
 
 const lessonContent = {
+  "nlp-04-rnn": RnnLesson,
   "nlp-03-ffnn-lm": FeedforwardLmLesson,
   "nlp-02-word2vec": WordVectorLesson,
   "nlp-01-ngram": NgramLesson,
