@@ -28,6 +28,18 @@ const operationsSections: LessonSection[] = [
 ];
 
 const publishedLessons: Record<string, { description: string; sections: LessonSection[] }> = {
+  "nlp-03-ffnn-lm": {
+    description: "Look up word vectors, concatenate them, and predict the next word. Follow a tiny network numerically and see how it shares evidence across related contexts.",
+    sections: [
+      { id: "unseen-contexts", title: "When a count table has no match" },
+      { id: "lookup-concatenate-predict", title: "Look up, concatenate, predict" },
+      { id: "worked-forward-pass", title: "Follow the numbers" },
+      { id: "generalisation", title: "Replace star with black hole" },
+      { id: "fixed-window", title: "Compare the models and their limits" },
+      { id: "summary", title: "What you have discovered" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
   "nlp-02-word2vec": {
     description: "How can words become coordinates? Learn from surrounding text, compare word vectors, and explore what vector analogies can and cannot tell us.",
     sections: [

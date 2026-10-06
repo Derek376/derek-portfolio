@@ -1,0 +1,207 @@
+import { FeedforwardLmArchitecture, FeedforwardLmExperiment, FeedforwardLmComparison, CountAndNeuralModels } from "@/components/notes/FeedforwardLmFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { feedforwardLmQuiz } from "@/data/feedforward-lm-lesson";
+
+<h2 id="unseen-contexts">1. What if the count table has no match?</h2>
+
+We now have two building blocks: **N-gram models**, which estimate the next token from counts, and **word vectors**, which give words numeric representations. This lesson brings them together with a neural network.
+
+First, recall the difficulty with an exact count table. Suppose a vocabulary represents “black hole” as a single item, and we want to continue:
+
+**“Scientists discovered an object orbiting a black hole. The object is a ___.”**
+
+For the miniature calculation below, we simplify the context to the two vocabulary items **“around” + “black hole”**. A trigram uses two context tokens and one predicted token. If this pair has never been observed with a continuation, its unsmoothed conditional estimate has no denominator.
+
+Backoff can consult shorter contexts; smoothing and interpolation can supply probabilities from other evidence. These are useful methods, not necessarily random guesses. But a basic symbol-based count table does not automatically connect “black hole” with “star”. Evidence after “around star” is stored under a different key.
+
+A neural model can instead **share parameters across contexts**. If related words have useful numeric representations, a new context can resemble an observed one even when the exact symbols differ.
+
+<ThoughtExercise question="If 'star' and 'black hole' have related vectors, what could happen when we feed their contexts into the same network?">
+
+The input vectors could be close, allowing the shared network to produce related predictions. We no longer need a separate lookup entry for every exact combination.
+
+That is a mechanism for generalisation, not a guarantee. The representation and network must have been trained appropriately, and a word never learned or covered by the vocabulary presents a different problem from a new combination of known words.
+
+</ThoughtExercise>
+
+<h2 id="lookup-concatenate-predict">2. Look up vectors, concatenate them, predict a word</h2>
+
+A feedforward neural language model uses a fixed number of recent tokens. Let that context length be $K$; unlike N-gram order $N$, $K$ counts **only the input tokens**. Matching an N-gram's window gives $K=N-1$.
+
+The basic procedure is:
+
+1. **Look up** each context token's embedding in a shared table.
+2. **Concatenate** those vectors in their original order.
+3. **Apply a feedforward network** and output a probability for each candidate next token.
+
+<FeedforwardLmArchitecture />
+
+If each embedding has $d$ coordinates, the concatenated input has $Kd$ coordinates:
+
+$$
+\mathbf x=[\mathbf e_{t-K};\ldots;\mathbf e_{t-1}]\in\mathbb R^{Kd}.
+$$
+
+Concatenation means joining the vectors end to end, not adding or averaging them. Each position has its own block in the input, so reversing two tokens generally changes the prediction.
+
+### The network uses familiar parts
+
+For a hidden layer of width $H$ and a vocabulary of size $V$, a simple architecture is:
+
+$$
+\mathbf h=\tanh(W\mathbf x+\mathbf b),\qquad
+\mathbf z=U\mathbf h+\mathbf a,
+$$
+
+$$
+W\in\mathbb R^{H\times Kd},\quad
+U\in\mathbb R^{V\times H},\quad
+P(w_t=j\mid w_{t-K},\ldots,w_{t-1})
+=\frac{e^{z_j}}{\sum_{v=1}^{V}e^{z_v}}.
+$$
+
+These are the affine layers, nonlinear activations and Softmax from Chapter II. With observed next token $y$, the training loss is:
+
+$$
+L=-\ln P(w_t=y\mid w_{t-K},\ldots,w_{t-1}).
+$$
+
+Backpropagation computes gradients for the network weights **and the looked-up embeddings**. The model can learn them jointly; embeddings do not have to come from a separately trained Word2Vec model.
+
+Neural probabilistic language models using learned distributed representations were developed before Word2Vec. A notable 2003 model used this approach to share statistical information across similar word sequences. We are following the same central idea with a simplified architecture, rather than reproducing every detail of that model.
+
+<h2 id="worked-forward-pass">3. Shrink the network until we can calculate it</h2>
+
+For this teaching example, use **two context tokens**, **two coordinates per vector**, **one hidden neuron** and just two output candidates: “planet” and “umbrella”.
+
+The embeddings and weights are chosen by hand. The first coordinate of the second token acts as an illustrative astronomy-related feature; this is not a claim that learned embeddings normally have a coordinate with that name.
+
+$$
+\mathbf e_{\mathrm{around}}=[0.10,0.20],\qquad
+\mathbf e_{\mathrm{star}}=[0.90,0.15].
+$$
+
+Concatenate them:
+
+$$
+\mathbf x=[0.10,0.20,0.90,0.15]^{\mathsf T}.
+$$
+
+Choose hidden-layer weights $W=[0,0,1.5,0]$ and bias $b=-0.8$. The zeros make this neuron use only the third input coordinate:
+
+$$
+h=\tanh(W\mathbf x+b)
+=\tanh(1.5\times0.90-0.8)
+=\tanh(0.55)\approx0.5005.
+$$
+
+Now set the output scores to:
+
+$$
+z_{\mathrm{planet}}=2.5h\approx1.2513,\qquad
+z_{\mathrm{umbrella}}=0.
+$$
+
+Softmax gives:
+
+$$
+P(\mathrm{planet})=\frac{e^{2.5h}}{e^{2.5h}+e^0}\approx0.7775,
+\qquad P(\mathrm{umbrella})\approx0.2225.
+$$
+
+So this tiny network assigns about **77.8%** to “planet”. It has converted a four-number input into a two-candidate distribution.
+
+<FeedforwardLmExperiment />
+
+Start with “star” and follow every displayed number. Then choose “black hole”, “rocket” and “banana”. All values are recomputed using the same fixed network; intermediate results are not rounded before the next calculation.
+
+The two candidates make the arithmetic inspectable, not realistic. A model choosing “umbrella” after “banana” is not showing sensible language understanding: it is selecting between the only two available outputs.
+
+<h2 id="generalisation">4. Replace “star” with “black hole”</h2>
+
+Suppose the exact context “around black hole” was absent from training, while both vocabulary items already had useful embeddings. In our hand-built illustration:
+
+$$
+\mathbf e_{\mathrm{star}}=[0.90,0.15],\qquad
+\mathbf e_{\mathrm{black\ hole}}=[0.85,0.20].
+$$
+
+Substituting the latter into the **same network** gives:
+
+$$
+h=\tanh(1.5\times0.85-0.8)
+=\tanh(0.475)\approx0.4422,
+$$
+
+$$
+z_{\mathrm{planet}}\approx1.1056,\qquad
+P(\mathrm{planet})\approx0.7513.
+$$
+
+The probabilities are about **77.8% versus 75.1%**. The inputs are related, and this particular network responds similarly without needing an exact count-table entry for each pair.
+
+<FeedforwardLmComparison />
+
+For “banana”, the first coordinate is $0.10$:
+
+$$
+h=\tanh(-0.65)\approx-0.5717,\qquad
+P(\mathrm{planet})\approx0.1932.
+$$
+
+Its different numeric input produces a different prediction.
+
+### Why parameter sharing helps
+
+The same weights transform every context. Learning from one sequence can therefore affect predictions for others, rather than merely incrementing an isolated phrase count.
+
+With finite weights, the tanh and Softmax functions are continuous. Nearby inputs can consequently yield nearby outputs, but **continuity does not guarantee a useful degree of similarity for every network**: large weights can amplify differences. Even similar outputs can both be wrong.
+
+Our chosen parameters demonstrate the mechanism. They do not prove that a trained model understands astronomy or that a specific real embedding will place these words close. Unknown vocabulary items and domain changes still need appropriate handling and evaluation.
+
+<h2 id="fixed-window">5. Compare the models—and the remaining limitation</h2>
+
+<CountAndNeuralModels />
+
+The feedforward model stores an embedding table and shared weights rather than only separate continuation counts. This helps address sparsity through generalisation, but does not remove the need for training data or guarantee better predictions in every setting.
+
+Storage is also configuration-dependent. Ignoring optional connections, the simple architecture above has:
+
+$$
+Vd+H(Kd)+H+VH+V
+$$
+
+parameters: embeddings, hidden weights and biases, then output weights and biases. Increasing $K$, $d$, $H$ or $V$ increases memory or computation; neural models are not automatically small.
+
+### The context window is still fixed
+
+Consider two stories whose last three tokens are both **“the dog felt”**. One earlier described a dog being rescued; the other described a dog frightened by fireworks.
+
+With $K=3$, this model receives the same input for both stories. Their earlier information is outside its window, so it must give the same next-token distribution despite the different situations.
+
+A larger window can supply more context, but concatenation also increases the input size. The hidden weight matrix has $HKd$ entries, growing linearly with $K$ when the other dimensions stay fixed. No particular window size is a universal requirement.
+
+<ThoughtExercise question="Could a model read a sequence one token at a time and carry information forward, instead of concatenating a fixed window each time?">
+
+Yes. A recurrent network maintains a hidden state and updates it after each input token. Earlier tokens can influence later predictions through that state.
+
+This removes the strict fixed-window cutoff, but a finite state does not remember every detail indefinitely. Learning long-range dependencies introduces difficulties of its own. That is the next lesson's topic.
+
+</ThoughtExercise>
+
+<h2 id="summary">6. What you have discovered</h2>
+
+**A feedforward language model combines embeddings with a shared prediction function.**
+
+- **Look up → concatenate → predict:** $K$ context vectors of dimension $d$ become an input with $Kd$ coordinates.
+- **Familiar network parts:** affine layers, a nonlinear activation, Softmax and cross-entropy form the model and its training objective.
+- **Joint learning:** backpropagation can update both the network parameters and the embedding table.
+- **Generalisation:** related inputs can produce related predictions for combinations not observed exactly in training.
+- **A fixed window remains:** information before the final $K$ tokens is not supplied to this model.
+
+The next lesson introduces recurrent neural networks and a hidden state that is updated as the sequence is read.
+
+<h2 id="quiz">Check your understanding</h2>
+
+<LessonQuiz questions={feedforwardLmQuiz} />
