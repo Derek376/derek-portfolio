@@ -28,6 +28,17 @@ const operationsSections: LessonSection[] = [
 ];
 
 const publishedLessons: Record<string, { description: string; sections: LessonSection[] }> = {
+  "nlp-02-word2vec": {
+    description: "How can words become coordinates? Learn from surrounding text, compare word vectors, and explore what vector analogies can and cannot tell us.",
+    sections: [
+      { id: "separate-symbols", title: "Why symbols do not share meaning" },
+      { id: "semantic-coordinates", title: "Turn words into coordinates" },
+      { id: "learning-from-context", title: "Learn the numbers from context" },
+      { id: "vector-analogies", title: "Arithmetic with word vectors" },
+      { id: "summary", title: "What you have discovered" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
   "nlp-01-ngram": {
     description: "Can counting predict the next word? Build a conditional frequency table, explore context windows and see why unseen combinations cause trouble.",
     sections: [

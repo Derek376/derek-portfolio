@@ -1,0 +1,200 @@
+import { SeparateWordCounts, SemanticCoordinates, SimilarContexts, ContextPrediction, AnalogyDirections, WordSimilarityExperiment } from "@/components/notes/WordVectorFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { wordVectorQuiz } from "@/data/word-vector-lesson";
+
+<h2 id="separate-symbols">1. To a count table, “cat” and “kitten” are strangers</h2>
+
+The previous lesson introduced a language model that learns from counts. Suppose it has seen “cat → goes outside” many times. What happens when someone writes “kitten” instead?
+
+It looks up a different row. If that continuation has appeared only a few times after “kitten”, there is much less evidence. The table does not automatically know that a kitten is a young cat.
+
+<SeparateWordCounts />
+
+The problem is the **representation**: a basic word-level N-gram model treats words as distinct symbols. The symbol “cat” has no built-in distance from “kitten”, “apple” or “airplane”. Similar rows can arise from similar observations, but the model does not share evidence simply because two words have related meanings.
+
+To express that relationship, we need something richer than a word identifier. We can represent a word with **numbers**, so that relationships between words become relationships between vectors.
+
+This does not mean replacing a word with its dictionary definition. It means learning a representation whose geometry is useful for a task. Before asking a machine to learn one, let us try constructing a tiny example ourselves.
+
+<h2 id="semantic-coordinates">2. Turn meanings into coordinates</h2>
+
+Choose two rough features: **animalness** and **size**. Give each word a score between $0$ and $1$ on each feature.
+
+Now “cat” becomes a pair of numbers rather than an isolated symbol:
+
+$$
+\mathbf v_{\mathrm{cat}}=(0.86,0.27),\qquad
+\mathbf v_{\mathrm{kitten}}=(0.90,0.13).
+$$
+
+<SemanticCoordinates />
+
+The cat, kitten and dog lie in the small-animal part of the plane. The airplane is far away because we assigned it low animalness and high size. We can use the distance and cosine similarity from Lesson 2 to compare these points.
+
+<WordSimilarityExperiment />
+
+Try comparing “cat” with “kitten”, then with “airplane”. Also compare “cat” with “tiger”: cosine can be high even when the points have a noticeable distance, because it compares **direction**, not position.
+
+### Two features are not enough
+
+A cat and a dog receive very similar scores here. These features do not tell us which animal barks, which one catches mice, or how either word behaves in a sentence.
+
+Adding features can help, but choosing them by hand quickly becomes impractical. Abstract words such as “freedom”, “democracy”, “sadness” and “melancholy” are especially difficult to describe with a few physical attributes.
+
+A **word embedding**, or **word vector**, represents a word by a sequence of real numbers:
+
+$$
+\mathbf v_w=(v_1,v_2,\ldots,v_d)\in\mathbb R^d.
+$$
+
+Here $d$ is the embedding dimension. Practical embeddings often have hundreds of coordinates. They are still the vectors introduced in Lesson 1; we can calculate dot products, lengths and angles in the same way.
+
+However, learned coordinates are not normally labelled “animalness” or “size”. Useful information can be distributed across many coordinates. A larger dimension provides more representational capacity, but **more dimensions do not automatically produce better embeddings**: the data, objective and amount of training also matter.
+
+<ThoughtExercise question="If the coordinates in Figure 15-2 were chosen by hand, does a high similarity score prove that two words have similar meanings in every situation?">
+
+No. The calculation only describes those selected features and that metric. We deliberately made several animals close on two axes. That says little about abstract meanings, different senses of a word, or how a real trained model would arrange them.
+
+The figure explains the idea of a numeric representation. The next step is to learn useful coordinates from language rather than assign them ourselves.
+
+</ThoughtExercise>
+
+<h2 id="learning-from-context">3. Let surrounding words teach the numbers</h2>
+
+We cannot manually assign hundreds of coordinates to every word. How could a machine learn them without already understanding what each word means?
+
+The clue is **usage**. Words that appear in similar contexts often have related meanings or roles. This is the **distributional hypothesis**.
+
+<SimilarContexts />
+
+The machine does not need to know what an animal is to observe these patterns. It can learn from the surrounding words in a large collection of text.
+
+### A prediction task provides a training signal
+
+Start with an embedding table, initialised with small random values. Every vocabulary word has a row of learnable coordinates. If the vocabulary has $V$ words and each vector has $d$ coordinates:
+
+$$
+E\in\mathbb R^{V\times d}.
+$$
+
+Looking up a word selects its row. The coordinates are parameters, so backpropagation can change them just as it changes other network weights.
+
+One training task is to use nearby words to predict a missing centre word. For example:
+
+**“Today I took ___ to the park for a walk.”**
+
+Suppose the word removed from the training sentence was “cat”. The prediction assigns probability $0.3$ to “cat” and $0.4$ to “dog”. The sentence could plausibly describe either animal, but this particular training example has one observed target.
+
+<ContextPrediction />
+
+With a full Softmax output, the cross-entropy loss for that target is:
+
+$$
+L=-\ln P(\mathrm{cat}\mid\mathrm{context})=-\ln(0.3)\approx1.204.
+$$
+
+We backpropagate this loss and update the relevant embedding and output parameters. Updates happen for training examples even when the most likely prediction is already correct; the loss measures the assigned probability, not just whether the top choice matched.
+
+After many examples, words used in similar surroundings can acquire related representations. The training signal comes from the text itself, rather than manually supplied semantic scores. This is a form of **self-supervised learning**.
+
+### Word2Vec has two main prediction directions
+
+**Word2Vec**, introduced in 2013, popularised efficient methods for learning word embeddings. It was not the first use of distributed word representations.
+
+- **Continuous bag of words (CBOW)** predicts the centre word from nearby context words. The simplified diagram above follows this direction.
+- **Skip-gram** predicts nearby context words from the centre word.
+
+In a simplified CBOW model, we average the input vectors for a nonempty context $C$:
+
+$$
+\mathbf h=\frac1{|C|}\sum_{c\in C}\mathbf v_c.
+$$
+
+A separate output vector $\mathbf u_w$ gives each candidate a score. Full Softmax turns those scores into a distribution:
+
+$$
+P(w\mid C)=\frac{\exp(\mathbf u_w^{\mathsf T}\mathbf h)}
+{\sum_{j\in\mathcal V}\exp(\mathbf u_j^{\mathsf T}\mathbf h)}.
+$$
+
+For Skip-gram, a simple full-Softmax objective sums the losses for the observed neighbours of a centre word $w_t$:
+
+$$
+L_t=-\sum_{c\in C_t}\ln P(c\mid w_t).
+$$
+
+These formulas explain the prediction objective. Computing a full vocabulary distribution for every example can be expensive; Word2Vec can instead use methods such as **negative sampling** or hierarchical Softmax. Negative sampling learns to distinguish observed word pairs from sampled alternatives and does not directly compute the full normalised distribution above.
+
+The original Word2Vec architectures are shallow. CBOW combines a local collection of context vectors, without preserving their order in that average; it is not the same architecture as a modern masked Transformer language model.
+
+### Similar usage is not always the same meaning
+
+Context is a powerful clue, but not a guarantee. Words such as “hot” and “cold” can occur in very similar sentences despite being opposites. Proximity may reflect related topics or uses rather than synonymy.
+
+The learned space depends on the training corpus, vocabulary, objective and similarity metric. Training does not ensure that every pair a person considers similar will end up close.
+
+<h2 id="vector-analogies">4. Arithmetic can reveal relationships</h2>
+
+Some trained embeddings exhibit a striking pattern:
+
+$$
+\mathbf v_{\mathrm{king}}-\mathbf v_{\mathrm{man}}+
+\mathbf v_{\mathrm{woman}}\approx\mathbf v_{\mathrm{queen}}.
+$$
+
+The addition and subtraction are ordinary **coordinate-by-coordinate vector operations**. The interesting part is that some learned relationships can correspond to roughly consistent displacements.
+
+<AnalogyDirections />
+
+If the displacement from “man” to “woman” resembles the displacement from “king” to “queen”, applying the former displacement to “king” can bring us near “queen”. We do not need a hard-coded rule for that specific analogy.
+
+For a computed query vector:
+
+$$
+\mathbf q=\mathbf v_b-\mathbf v_a+\mathbf v_c,
+$$
+
+one common approach is to search for the candidate with the largest cosine similarity to $\mathbf q$, excluding the input words:
+
+$$
+\underset{w\in\mathcal V\setminus\{a,b,c\}}{\operatorname{argmax}}
+\frac{\mathbf v_w\cdot\mathbf q}{\|\mathbf v_w\|_2\|\mathbf q\|_2}.
+$$
+
+This expression assumes nonzero vectors. The result is a nearest candidate, not proof of an exact identity. Some capital-and-country or grammatical relationships can also appear as useful directions, but many analogies fail. The corpus can also encode stereotypes and other biases that show up in these relationships.
+
+<ThoughtExercise question="Does the analogy mean that one specific embedding coordinate must be labelled 'gender' and another 'royalty'?">
+
+No. A relationship can be distributed across many coordinates. Figure 15-5 gives a two-dimensional geometric illustration with human-readable directions; it does not show actual coordinates from a trained Word2Vec model.
+
+A successful analogy is an approximate property of a learned space, not a universal rule of language.
+
+</ThoughtExercise>
+
+### One fixed vector cannot represent every sense
+
+A static embedding assigns one vector to each word in its vocabulary. Consider:
+
+- “I deposited money at the **bank**.”
+- “We sat on the river **bank**.”
+
+The same English word has two different senses, but a standard static embedding lookup returns the same vector in both sentences. Its representation reflects the word's mixed usage in the training data rather than selecting the appropriate sense for each occurrence.
+
+**Contextual representations** address this by computing a representation from the surrounding sentence. Recurrent models and attention-based models can both provide context-dependent representations; attention is not the only way to use context.
+
+<h2 id="summary">5. What you have discovered</h2>
+
+**Word vectors give words numeric representations that can be learned from their use in text.**
+
+- **Why they help:** separate count-table symbols do not automatically share information about related meanings.
+- **What they are:** a word is represented by a vector in a space with $d$ dimensions. Our manual plane illustrates the idea; real coordinates are learned.
+- **How they learn:** CBOW predicts a centre word from its context, while Skip-gram predicts context words from a centre word.
+- **What geometry can reveal:** distances, angles and sometimes approximate relational directions provide ways to compare representations.
+- **What they miss:** a static vector cannot distinguish all context-specific senses, and training can preserve limitations and biases in the text.
+
+With vectors available, the next lesson asks how a feedforward neural language model can use them to predict the next word and share statistical evidence across related contexts.
+
+<h2 id="quiz">Check your understanding</h2>
+
+<LessonQuiz questions={wordVectorQuiz} />
