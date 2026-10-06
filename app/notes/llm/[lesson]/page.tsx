@@ -6,6 +6,7 @@ import VectorLesson from "@/content/notes/llm/math-01-vector.mdx";
 import OperationsLesson from "@/content/notes/llm/math-02-ops.mdx";
 import MatrixLesson from "@/content/notes/llm/math-03-matrix.mdx";
 import TransformationLesson from "@/content/notes/llm/math-04-transform.mdx";
+import BackpropLesson from "@/content/notes/llm/nn-07-backprop.mdx";
 import OptimiserLesson from "@/content/notes/llm/nn-06-sgd.mdx";
 import SoftmaxLesson from "@/content/notes/llm/nn-05-softmax.mdx";
 import LossLesson from "@/content/notes/llm/nn-04-loss.mdx";
@@ -17,6 +18,7 @@ import GradientLesson from "@/content/notes/llm/math-05-gradient.mdx";
 import { courseChapters, courseLessons } from "@/data/llm-course";
 
 const lessonContent = {
+  "nn-07-backprop": BackpropLesson,
   "nn-06-sgd": OptimiserLesson,
   "nn-05-softmax": SoftmaxLesson,
   "nn-04-loss": LossLesson,

@@ -28,6 +28,18 @@ const operationsSections: LessonSection[] = [
 ];
 
 const publishedLessons: Record<string, { description: string; sections: LessonSection[] }> = {
+  "nn-07-backprop": {
+    description: "How does an early weight affect the final loss? Follow the chain rule backwards, inspect every gradient, and update a tiny network.",
+    sections: [
+      { id: "gradient-cost", title: "The cost of calculating gradients" },
+      { id: "chain-rule", title: "The chain rule and computation graphs" },
+      { id: "worked-example", title: "Follow the numbers" },
+      { id: "complete-network", title: "A complete hidden-layer case" },
+      { id: "gradient-stability", title: "Vanishing and exploding gradients" },
+      { id: "summary", title: "Chapter II is complete" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
   "nn-06-sgd": {
     description: "A downhill direction is not enough. Explore learning rates, train a tiny classifier, and understand mini-batch gradients, momentum and Adam.",
     sections: [

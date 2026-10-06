@@ -1,0 +1,246 @@
+import { ComputationGraph, WorkedBackprop, NeuronGradientExperiment, FullBackpropExperiment } from "@/components/notes/BackpropFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { backpropQuiz } from "@/data/backprop-lesson";
+
+<h2 id="gradient-cost">1. How expensive is a gradient?</h2>
+
+In Lesson 12, every training step used derivatives of the loss with respect to weights and biases. We wrote those derivatives explicitly for one neuron. How can we calculate them for a network with many layers and parameters?
+
+One approach is **numerical differentiation**. Perturb a parameter slightly and measure the change in loss:
+
+$$
+\frac{\partial L}{\partial\theta_i}\approx
+\frac{L(\theta+\varepsilon\mathbf e_i)-L(\theta)}{\varepsilon}.
+$$
+
+The vector $\mathbf e_i$ selects the parameter to perturb. After calculating the baseline loss, this forward-difference approximation needs an additional forward evaluation for each parameter. With $n$ parameters, that means $n$ additional evaluations.
+
+A central difference uses perturbations on both sides and often provides a better numerical approximation, but needs two evaluations per parameter. Choosing the perturbation size also involves a trade-off between approximation error and floating-point cancellation.
+
+Numerical derivatives are useful for **checking** analytic gradients on small examples. Repeating a whole network evaluation for every parameter is an expensive way to train a large model.
+
+<ThoughtExercise question="The loss is a composition of operations. Could we reuse the intermediate values from one forward pass to calculate derivatives backwards through those operations?">
+
+Yes. Each operation has a local derivative. Starting from the scalar loss, use the chain rule to pass sensitivity backwards through the computation graph. Reuse the saved forward values instead of evaluating the whole network separately for every parameter.
+
+This requires a **forward pass and a backward pass**, not a forward pass alone. It is the central idea of backpropagation.
+
+</ThoughtExercise>
+
+<h2 id="chain-rule">2. The chain rule carries gradients backwards</h2>
+
+For a scalar composition $L=f(g(x))$, the chain rule gives:
+
+$$
+\frac{dL}{dx}=\frac{dL}{dg}\frac{dg}{dx}.
+$$
+
+Read it as: how the loss changes with an intermediate value, multiplied by how that intermediate value changes with its input.
+
+In a neural network, each operation receives a gradient from later operations, combines it with its local derivative, and sends the resulting gradient to earlier operations.
+
+<ComputationGraph />
+
+The forward pass computes intermediate values needed by the derivative calculations. The backward pass reuses them. If a value affects the loss through **multiple branches**, its gradient is the **sum of contributions from all those branches**, not just one path.
+
+For vector operations, the same principle uses Jacobians and vector products. Reverse-mode differentiation propagates a loss gradient without needing to construct a full Jacobian explicitly.
+
+A gradient measures **local sensitivity**, not moral “responsibility” or a percentage share of an error. Its magnitude and sign tell us how a small parameter change affects the chosen loss at the current values.
+
+<h2 id="worked-example">3. Follow the numbers through one network</h2>
+
+Use a deliberately simple scalar graph:
+
+$$
+x=2,\quad w=1.5,\quad z=wx,\quad a=z^2,\quad L=(a-6)^2.
+$$
+
+The target is six. During the forward pass:
+
+$$
+z=3,\qquad a=9,\qquad L=9.
+$$
+
+Work backwards, using those saved values:
+
+$$
+\frac{\partial L}{\partial a}=2(a-6)=6,
+\qquad
+\frac{\partial a}{\partial z}=2z=6,
+\qquad
+\frac{\partial z}{\partial w}=x=2.
+$$
+
+Multiply the local derivatives:
+
+$$
+\frac{\partial L}{\partial w}
+=\frac{\partial L}{\partial a}
+\frac{\partial a}{\partial z}
+\frac{\partial z}{\partial w}
+=6\cdot6\cdot2=72.
+$$
+
+With learning rate $\alpha=0.001$, update the weight:
+
+$$
+w_{\mathrm{new}}=1.5-0.001\cdot72=1.428.
+$$
+
+A new forward evaluation gives:
+
+$$
+z_{\mathrm{new}}=2.856,\qquad
+ a_{\mathrm{new}}=8.156736,\qquad
+ L_{\mathrm{new}}\approx4.6515.
+$$
+
+The loss has fallen from nine. We used one forward pass to obtain the values and one backward pass to obtain the gradient. Evaluating the updated loss is a **new** forward pass, after the update.
+
+<WorkedBackprop />
+
+### The fruit neuron closes the loop
+
+For a binary classifier:
+
+$$
+z=wx+b,\qquad p=\sigma(z),
+\qquad L=-[y\ln p+(1-y)\ln(1-p)].
+$$
+
+Differentiate each local operation:
+
+$$
+\frac{\partial L}{\partial p}=-\frac{y}{p}+\frac{1-y}{1-p},
+\qquad
+\frac{\partial p}{\partial z}=p(1-p).
+$$
+
+Their product simplifies to:
+
+$$
+\frac{\partial L}{\partial z}=p-y,
+\quad
+\frac{\partial L}{\partial w}=(p-y)x,
+\quad
+\frac{\partial L}{\partial b}=p-y.
+$$
+
+<NeuronGradientExperiment />
+
+This is precisely the per-example derivative used in Lesson 12. Averaging it across the eight examples gives that experiment's full-batch gradient.
+
+<h2 id="complete-network">4. A complete case: gradients through a hidden layer</h2>
+
+A single neuron has only one affine layer. To see gradients pass through a hidden layer and split across branches, use a small graph:
+
+$$
+2\text{ inputs}\longrightarrow1\text{ Sigmoid hidden unit}
+\longrightarrow2\text{ output scores}\longrightarrow\text{Softmax}.
+$$
+
+The inputs are colour depth and size. The example starts at $x_1=0.9$, $x_2=0.8$, with watermelon as the true class. These are illustrative teaching features, not reliable real-world fruit identification rules.
+
+The network has four weights and no biases:
+
+$$
+z=w_1x_1+w_2x_2,\quad h=\sigma(z),\quad
+ o_1=v_1h,\quad o_2=v_2h.
+$$
+
+Follow the experiment's six stages in order. You can change features, labels and weights; the values and gradients recalculate immediately.
+
+<FullBackpropExperiment />
+
+### Trace the backward pass from A to E
+
+**A. Output scores.** For Softmax and one-hot cross-entropy, let $y_i$ be the target entry for class $i$:
+
+$$
+\delta_i=\frac{\partial L}{\partial o_i}=p_i-y_i.
+$$
+
+**B. Hidden output.** The hidden value feeds both class scores, so add both gradient contributions:
+
+$$
+\frac{\partial L}{\partial h}=v_1\delta_1+v_2\delta_2.
+$$
+
+**C. Local Sigmoid derivative.**
+
+$$
+\frac{\partial h}{\partial z}=h(1-h).
+$$
+
+**D. Hidden score.** Combine the incoming gradient and local derivative:
+
+$$
+\frac{\partial L}{\partial z}
+=(v_1\delta_1+v_2\delta_2)h(1-h).
+$$
+
+**E. All four weights.**
+
+$$
+\frac{\partial L}{\partial w_j}=\frac{\partial L}{\partial z}x_j,
+\qquad
+\frac{\partial L}{\partial v_i}=\delta_i h.
+$$
+
+Calculate all these derivatives using the **same current weights**, then update the parameters together. Updating an output weight before computing the hidden gradient would mix two parameter states and would no longer be the gradient of the original forward pass.
+
+### What this demonstration cannot establish
+
+The training simulation repeatedly optimises **one selected example**, up to 100 updates. A falling loss on that example does not establish classification ability on other fruit.
+
+There is also a structural limitation: without output biases, $o_1-o_2=(v_1-v_2)h$. Since a Sigmoid hidden value is positive, the sign of this difference depends only on $v_1-v_2$. At fixed weights, this graph therefore picks the same highest-scoring class for every input, unless the two scores tie.
+
+We preserve this small graph to make the chain rule transparent. A useful classifier would need a more suitable architecture, labelled data from both classes, and evaluation on held-out examples. Backpropagation computes the gradients of the graph we give it; it does not remove the graph's limitations.
+
+<h2 id="gradient-stability">5. Vanishing and exploding gradients</h2>
+
+Gradients through a sequence of operations involve products of local derivatives. Repeated contraction can make gradients very small; repeated amplification can make them very large.
+
+Sigmoid has derivative at most $0.25$. Multiplying 100 such factors gives:
+
+$$
+0.25^{100}\approx6.22\times10^{-61}.
+$$
+
+This illustrates severe attenuation. A real network's gradient also contains weight matrices, sums over paths and other operations, so this is **not** a universal formula for its complete gradient. A very small gradient can slow learning in early layers; it need not be literally zero.
+
+Some tools that help address these difficulties include:
+
+- **ReLU:** derivative one on its positive branch, avoiding Sigmoid's contraction there. Its inactive branch has derivative zero, and the rest of the network can still attenuate or amplify gradients.
+- **Residual connections:** add an identity path through blocks, helping gradients pass through deep networks. We will study them later in the course.
+- **Initialisation and normalisation:** influence activation and gradient scales.
+- **Gradient clipping:** limits large gradients, addressing explosion rather than restoring vanishing gradients.
+
+### Automatic differentiation does the bookkeeping
+
+Modern machine-learning frameworks can record operations and compute derivatives automatically. Backpropagation is the familiar reverse-mode application used to obtain parameter gradients for a scalar training loss.
+
+You usually build the computation and ask the framework for gradients rather than manually writing every derivative. The optimiser then performs a separate update. Understanding the chain rule still helps you diagnose incorrect graphs, missing gradient paths and unstable training.
+
+The cost of a backward pass is usually comparable in order to the forward computation, rather than growing by one whole forward evaluation per parameter. It is **not always exactly twice the forward cost**. Retaining intermediate values also has a memory cost; techniques that recompute some values trade computation for memory.
+
+<h2 id="summary">6. The neural networks chapter is complete</h2>
+
+The seven lessons in Chapter II now connect the pieces:
+
+- **Lesson 7:** weighted sums, biases and neurons.
+- **Lesson 8:** nonlinear activation functions.
+- **Lesson 9:** layers, parameters and the training loop.
+- **Lesson 10:** losses that define a numerical objective.
+- **Lesson 11:** Softmax probabilities and temperature.
+- **Lesson 12:** learning rates, mini-batches and optimisers.
+- **Lesson 13:** the chain rule, computation graphs and efficient gradients.
+
+**Backpropagation computes gradients; the optimiser uses them to update parameters.** Forward values are reused, local derivatives are multiplied along paths, and contributions are added at branches.
+
+Next we move into natural language processing: can counting short word sequences help us predict the next word?
+
+<h2 id="quiz">Check your understanding</h2>
+
+<LessonQuiz questions={backpropQuiz} />
