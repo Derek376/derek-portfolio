@@ -6,6 +6,7 @@ import VectorLesson from "@/content/notes/llm/math-01-vector.mdx";
 import OperationsLesson from "@/content/notes/llm/math-02-ops.mdx";
 import MatrixLesson from "@/content/notes/llm/math-03-matrix.mdx";
 import TransformationLesson from "@/content/notes/llm/math-04-transform.mdx";
+import MultiheadLesson from "@/content/notes/llm/tf-02-multihead.mdx";
 import AttentionLesson from "@/content/notes/llm/tf-01-attention.mdx";
 import LstmLesson from "@/content/notes/llm/nlp-05-lstm.mdx";
 import RnnLesson from "@/content/notes/llm/nlp-04-rnn.mdx";
@@ -24,6 +25,7 @@ import GradientLesson from "@/content/notes/llm/math-05-gradient.mdx";
 import { courseChapters, courseLessons } from "@/data/llm-course";
 
 const lessonContent = {
+  "tf-02-multihead": MultiheadLesson,
   "tf-01-attention": AttentionLesson,
   "nlp-05-lstm": LstmLesson,
   "nlp-04-rnn": RnnLesson,

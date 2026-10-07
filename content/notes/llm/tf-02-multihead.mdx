@@ -1,0 +1,180 @@
+import { SingleMixture, TwoHeadWeights, FullInputProjections, AttentionPatternExamples, MultiheadWorkedExample, MultiheadArithmeticExperiment, HeadBudgetExperiment } from "@/components/notes/MultiheadFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { multiheadQuiz } from "@/data/multihead-lesson";
+
+<h2 id="multiple-relations">1. One token, several relationships</h2>
+
+Consider the sentence **“He likes the painting she made.”**
+
+Understanding “likes” involves its subject, “he”, and its object, “the painting”. Understanding “painting” may also involve the person who made it. Different relationships can matter at the same time.
+
+In the previous lesson, one attention head calculated a set of weights and used them to combine value vectors:
+
+$$
+\mathbf h=\sum_j\alpha_j\mathbf v_j.
+$$
+
+A single head can assign weight to several positions. It can also carry multiple kinds of information in different coordinates. However, it produces one weighted mixture for each query, using the same weight for every coordinate of each value vector.
+
+<SingleMixture />
+
+An average is not a record of its separate inputs. For example, averaging $[1,0]$ and $[0,1]$ gives the same result as averaging $[0.5,0.5]$ with itself. Once we keep only the average, we cannot generally recover which pair produced it.
+
+This motivates a useful extension: **calculate several mixtures in different learned spaces and keep their outputs separate until we combine them.**
+
+<ThoughtExercise question="If we want to select information about both a subject and an object, must we manually tell one head to find each?">
+
+No. We can provide separate learned projections and let the training objective determine which distinctions are useful.
+
+“Subject head” and “object head” are convenient teaching labels, not required roles. One head can serve several functions, and different heads can learn similar patterns.
+
+</ThoughtExercise>
+
+<h2 id="parallel-heads">2. Several heads in parallel</h2>
+
+Multi-head attention repeats the attention calculation with separate query, key and value projections. Each head receives the input sequence $X$:
+
+$$
+Q_i=XW_Q^{(i)},\qquad
+K_i=XW_K^{(i)},\qquad
+V_i=XW_V^{(i)}.
+$$
+
+Head $i$ then calculates:
+
+$$
+H_i=\operatorname{softmax}\!\left(
+\frac{Q_iK_i^{\mathsf T}}{\sqrt{d_k}}
+\right)V_i.
+$$
+
+Softmax operates across the available keys for each query row. Because the projections differ, the same input position can produce different attention distributions in different heads.
+
+<TwoHeadWeights />
+
+Our small example uses the tokens “he”, “likes” and “painting”. With “likes” as the query, one set of hand-picked projections favours “he”; the other favours “painting”. The numbers are calculated from the matrices shown later, rather than inferred from a trained language model.
+
+We concatenate the head outputs along their feature dimension and apply a learned output projection:
+
+$$
+O=\operatorname{Concat}(H_1,\ldots,H_m)W_O.
+$$
+
+Concatenation keeps the separate head outputs available to $W_O$. It does not average them together. The output projection can mix their coordinates to produce the representation passed to the rest of the network.
+
+Each head has its own parameters in standard multi-head attention, but **all heads are trained jointly with the network**. They are not independently trained models with fixed, human-assigned responsibilities.
+
+<h2 id="projection-budget">3. Full inputs, smaller working spaces</h2>
+
+Do eight heads make attention eight times as expensive? The answer depends on the width assigned to each head.
+
+A common arrangement keeps the total output width fixed. If the model width is $d$ and the number of heads is $m$, choose:
+
+$$
+d_k=d_v=\frac{d}{m}.
+$$
+
+The original Transformer used $d=512$ and $m=8$, giving $64$ coordinates per head. This is an example of a design choice, not a universal rule for all models.
+
+With $n$ input positions, the shapes are:
+
+$$
+\begin{aligned}
+X&\in\mathbb R^{n\times d},\\
+W_Q^{(i)},W_K^{(i)},W_V^{(i)}&\in\mathbb R^{d\times(d/m)},\\
+H_i&\in\mathbb R^{n\times(d/m)},\\
+\operatorname{Concat}(H_1,\ldots,H_m)&\in\mathbb R^{n\times d},\\
+W_O&\in\mathbb R^{d\times d}.
+\end{aligned}
+$$
+
+<FullInputProjections />
+
+**Every head projects the full input.** We do not give the first head only the first group of input coordinates and the second head only the next group. A projection can combine information from any input coordinate.
+
+A smaller projected space can discard information. Returning to the original width after concatenation does not prove that the operation preserves all information or is invertible.
+
+### What stays fixed, and what grows?
+
+Under this equal-width arrangement, ignoring biases, the query, key and value projections together contain $3d^2$ parameters. The output projection adds $d^2$:
+
+$$
+\text{projection parameters}=4d^2.
+$$
+
+The leading work for all score products is proportional to:
+
+$$
+m\,n^2\frac{d}{m}=n^2d.
+$$
+
+The value-mixing products have a similar leading cost. Narrower heads therefore avoid multiplying these matrix-product costs by the full head count.
+
+But more heads are not free. A separate attention table for each head contains $mn^2$ entries, and Softmax, masking and execution overhead can grow. Optimised implementations may avoid storing every table; actual memory use and speed depend on the implementation.
+
+<HeadBudgetExperiment />
+
+Increasing the head count at fixed width also makes each head narrower. More heads do not automatically produce a better model: capacity, training and the task all matter.
+
+### A complete numerical example
+
+For Experiment 20-A, use three four-coordinate input rows:
+
+$$
+X=\begin{bmatrix}
+1&0&1&0\\
+0&1&1&1\\
+0&0&0&1
+\end{bmatrix}.
+$$
+
+The rows stand for “he”, “likes” and “painting”. These are teaching vectors, not learned word embeddings. Each head maps four input coordinates into two query, key and value coordinates.
+
+<MultiheadWorkedExample />
+
+Change the query below to see how its dot products, weights and weighted values change. The two two-coordinate head outputs concatenate into four coordinates, then the displayed $W_O$ mixes them.
+
+<MultiheadArithmeticExperiment />
+
+With causal masking, a query may use its own position and earlier positions, but cannot read later positions. We add a mask $M$ to the scaled scores before Softmax, with allowed entries $0$ and forbidden entries $-\infty$. For example, “likes” cannot attend to “painting” when the mask is enabled.
+
+Within this attention operation, each head computes its mixture separately; the output projection combines them. Shared inputs, joint training and subsequent layers also connect their contributions across the network.
+
+Some architectures use **multi-query attention** or **grouped-query attention**, where query heads share key and value projections. These variants can reduce key-value cache costs during generation. Sharing keys and values is not a mechanism that assigns grammatical roles or makes heads explicitly discuss their choices.
+
+<h2 id="head-patterns">4. What do heads attend to?</h2>
+
+A heatmap is a useful way to inspect attention. Each row is a query position, each column is a key position, and darker cells indicate larger weights.
+
+<AttentionPatternExamples />
+
+Patterns worth looking for include attention to an adjacent position, the same position, an earlier related token or a special token. A trained model can also show patterns associated with syntax or references. Such observations depend on the model, layer, input and training.
+
+These diagrams are deliberately schematic. They do not establish that a particular model contains exactly these four types of heads.
+
+A related idea is an **induction pattern**: after seeing a sequence such as $[A][B]\ldots[A]$, a model may use the earlier occurrence to help predict $[B]$. Some studied attention circuits support this kind of copying from context. That does not mean one head alone explains every form of in-context learning.
+
+<ThoughtExercise question="If a heatmap shows strong attention to a pronoun's likely referent, have we proved that this head is responsible for understanding the pronoun?">
+
+No. The weights show where the head looks, but its effect also depends on the value vectors, output projection and the rest of the network.
+
+A stronger investigation would examine outputs and test interventions, such as removing a head and measuring the effect on the task. A visible pattern is a starting point for investigation, not a complete causal explanation.
+
+</ThoughtExercise>
+
+Heads can be redundant or serve several purposes. A head that often attends to a separator is not necessarily confused; that position may carry useful information, or the pattern may have little effect on the final result.
+
+<h2 id="summary">5. What you have discovered</h2>
+
+- A head produces a weighted mixture for each query. Several heads allow separate mixtures in separate learned spaces.
+- Standard multi-head attention gives each head its own query, key and value projections of the full input.
+- Head outputs are concatenated and passed through an output projection.
+- Dividing a fixed width among heads keeps leading matrix-product work comparable, while head-specific overhead and attention-table size can grow.
+- Head roles emerge through joint training. Neither specialisation, lossless compression nor improved performance is guaranteed by adding heads.
+
+Attention is only one part of a Transformer. Next, we will put it together with positional information, feed-forward networks, residual connections and normalisation to understand the complete architecture.
+
+<h2 id="quiz">Check your understanding</h2>
+
+<LessonQuiz questions={multiheadQuiz} />

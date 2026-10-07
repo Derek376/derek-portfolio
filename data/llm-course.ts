@@ -28,6 +28,17 @@ const operationsSections: LessonSection[] = [
 ];
 
 const publishedLessons: Record<string, { description: string; sections: LessonSection[] }> = {
+  "tf-02-multihead": {
+    description: "Why use several attention heads? Compute separate learned projections, combine their outputs, and explore the trade-off between head count, width and cost.",
+    sections: [
+      { id: "multiple-relations", title: "One token, several relationships" },
+      { id: "parallel-heads", title: "Several heads in parallel" },
+      { id: "projection-budget", title: "Full inputs, smaller working spaces" },
+      { id: "head-patterns", title: "What do heads attend to?" },
+      { id: "summary", title: "What you have discovered" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
   "tf-01-attention": {
     description: "How can a token select relevant context? Build scaled dot-product attention from queries, keys and values, then calculate a complete two-dimensional example.",
     sections: [
