@@ -1,0 +1,193 @@
+import { LstmStatePaths, TeachingGateValues, LstmMemoryExperiment } from "@/components/notes/LstmFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { lstmQuiz } from "@/data/lstm-lesson";
+
+<h2 id="selective-memory">1. Memory needs selective updates</h2>
+
+In the previous lesson, our scalar RNN mixed the old state with every new input. With a recurrent coefficient of $0.6$ and no later input signals, the original signal quickly faded.
+
+That example does not describe every possible RNN. It does reveal a useful design question: **could the network learn which information to keep and which new information to write?**
+
+Imagine a story establishes that its main character fears darkness. Several scenes later, the character enters a basement. The earlier fact may matter, while the intervening breakfast details may not.
+
+A useful memory mechanism would regulate retention, writing and access. **Long short-term memory**, or **LSTM**, provides learned gates for these roles.
+
+<ThoughtExercise question="Who should decide which information is worth retaining: a programmer assigning importance labels, or the model learning from its prediction task?">
+
+In an LSTM, trainable gate parameters determine how information flows. Their values depend on the current input and previous hidden state, and training adjusts them using the task's loss.
+
+We will assign gate values manually in a small experiment to explain the arithmetic. That demonstration should not be mistaken for a network that learned to understand a story.
+
+</ThoughtExercise>
+
+<h2 id="two-state-paths">2. Two state paths: a carry route and a working view</h2>
+
+An LSTM carries two vectors from one time step to the next:
+
+- **Cell state $\mathbf C_t$:** an internal state with an additive update, providing a relatively direct path through time.
+- **Hidden state $\mathbf h_t$:** a gated, transformed view of the cell state, used by later recurrent steps and often by an output layer.
+
+The cell state is sometimes compared to a **highway** and the hidden state to a **workbench**. The analogies explain their different roles; they do not mean one stores information forever while the other only stores the current word.
+
+<LstmStatePaths />
+
+Three gates regulate this standard LSTM cell:
+
+- **Forget gate:** how much of each previous cell-state coordinate to carry forward.
+- **Input gate:** how much proposed new information to write.
+- **Output gate:** how much of the transformed cell state to expose as the hidden state.
+
+Both states remain fixed-size vectors as the sequence grows. The model still compresses history rather than preserving a complete transcript.
+
+<h2 id="gate-equations">3. A gate scales information between zero and one</h2>
+
+A gate is a vector of values produced by a **sigmoid** function. A value near one passes most of a coordinate's signal; a value near zero suppresses it. Intermediate values scale it continuously.
+
+For finite inputs, the mathematical sigmoid lies strictly between zero and one. Exact zero and one are useful idealised endpoints; our “disable later writes” experiment explicitly sets a gate to zero as a controlled intervention.
+
+Let the current input be $\mathbf x_t$ and the previous hidden state be $\mathbf h_{t-1}$. Concatenate them:
+
+$$
+\mathbf q_t=[\mathbf h_{t-1};\mathbf x_t].
+$$
+
+The forget and input gates are:
+
+$$
+\mathbf f_t=\sigma(W_f\mathbf q_t+\mathbf b_f),\qquad
+\mathbf i_t=\sigma(W_i\mathbf q_t+\mathbf b_i).
+$$
+
+The proposed new content uses tanh:
+
+$$
+\mathbf g_t=\tanh(W_g\mathbf q_t+\mathbf b_g).
+$$
+
+The core update is:
+
+$$
+\boxed{\mathbf C_t=\mathbf f_t\odot\mathbf C_{t-1}
++\mathbf i_t\odot\mathbf g_t}.
+$$
+
+Read it as **new cell state = retained old state + admitted new content**. The symbol $\odot$ means elementwise multiplication, not a dot product. Every coordinate can have its own gate values.
+
+Finally, the output gate produces the hidden state:
+
+$$
+\mathbf o_t=\sigma(W_o\mathbf q_t+\mathbf b_o),\qquad
+\mathbf h_t=\mathbf o_t\odot\tanh(\mathbf C_t).
+$$
+
+These equations describe a common LSTM without peephole connections. If the hidden size is $H$ and input size is $d$, each gate matrix has shape $H\times(H+d)$ and each gate bias has $H$ entries.
+
+Sigmoid is useful here because it supplies bounded scaling values. Its derivatives can still become small when it saturates; using it in gates does not magically remove every gradient problem.
+
+<TeachingGateValues />
+
+Unlike a gate, the candidate can be negative. New writes can therefore add to or cancel existing cell-state values. The cell state itself is not constrained to the interval from minus one to one; tanh is applied when computing the hidden state.
+
+<h2 id="worked-memory">4. Calculate a gated memory step by step</h2>
+
+Use one scalar cell coordinate as a teaching signal for “fear of darkness”. Start with $C_0=0$.
+
+For the first event, choose $f_1=0.9$, $i_1=0.9$ and $g_1=0.95$:
+
+$$
+C_1=0.9\times0+0.9\times0.95=0.855.
+$$
+
+For each subsequent event, choose $f_t=0.99$, $i_t=0.04$ and $g_t=0.2$. Then:
+
+$$
+C_2=0.99\times0.855+0.04\times0.2=0.85445,
+$$
+
+$$
+C_3=0.99\times0.85445+0.008=0.8539055.
+$$
+
+With output gate $o_t=0.8$, compute the working hidden state separately:
+
+$$
+h_t=0.8\tanh(C_t).
+$$
+
+<LstmMemoryExperiment />
+
+Use **Read next event** to follow all nine events. The events include short phrases rather than actual tokenizer output. Gates and input signals are fixed teaching values, and the contrasting RNN uses the same scalar update as the previous lesson.
+
+### A high cell value is not the same as preserving the original signal
+
+After eight later events, the default cell value is about $0.8508$, or **99.5%** of $C_1$. But every later event added $0.008$. Those repeated writes partly replaced the cell value lost through the forget gate.
+
+With the gate sequence fixed, the contribution from the initial write is instead:
+
+$$
+C_1(0.99)^8\approx0.7889,
+\qquad (0.99)^8\approx0.9227.
+$$
+
+So the original contribution retains about **92.3%**, even though the total cell remains close to its initial value. The two percentages answer different questions.
+
+Enable **Disable later writes**. The later input gate becomes zero, so no replacement content is added. The total cell then equals the carried original contribution. This isolates what the forget gate alone retains.
+
+The RNN comparison retains about **1.5%** of its first-event state after eight zero-signal updates. This illustrates the chosen recurrences, not a benchmark proving that an LSTM always outperforms an RNN. Cell and hidden states are different quantities; the bars compare fractions within each example.
+
+<ThoughtExercise question="If a cell stays near its initial value, does that prove the same original information survived unchanged?">
+
+No. New writes can replace, reinforce or cancel previous contributions. A similar total value does not identify where that value came from.
+
+Our scalar experiment tracks the initial contribution separately because all gates and writes are fixed. In a learned vector model, interpreting stored information is more complicated than reading one number.
+
+</ThoughtExercise>
+
+<h2 id="retention-limits">5. A better path through time—and remaining limits</h2>
+
+The additive cell update offers a direct carry path. Holding gate values and candidate content fixed, its local derivative is:
+
+$$
+\left.\frac{\partial\mathbf C_t}{\partial\mathbf C_{t-1}}\right|_{\text{gates fixed}}
+=\operatorname{diag}(\mathbf f_t).
+$$
+
+Along one coordinate of that direct path, the multiplier across a gap is a product of forget-gate values. If each is $0.99$:
+
+$$
+(0.99)^{30}\approx0.7397,
+\qquad (0.6)^{30}\approx2.2107\times10^{-7}.
+$$
+
+The first product contracts much less than the second. These are **path multipliers**, not universal measures of memory quality. The full gradient also has other paths through hidden states and the learned gates; it is not simply the forget-gate product.
+
+Gating can help with long-range learning, but there is no universal promise that every LSTM reliably remembers exactly 50, 100 or any other fixed number of steps. Results depend on the task, data, architecture and training. Saturation, interference and gradient problems can still occur.
+
+### Recurrent steps remain sequential
+
+To compute the next hidden and cell states, a standard LSTM needs the previous ones. Its recurrent state updates therefore form a sequential chain.
+
+That does not mean GPUs cannot help: operations within a step and across independent sequences in a batch can be parallelised. The dependency between consecutive recurrent states remains a constraint on parallelising the sequence dimension.
+
+LSTMs have been useful in speech, translation and other sequence tasks. Attention mechanisms introduce a different way to access relevant representations, and Transformer architectures allow substantial parallel computation across positions during training.
+
+For causal language models, attention must still mask future positions. Autoregressive generation remains sequential across newly generated tokens. Moving to Transformers is not a promise of a particular reduction from months to days for every model or workload.
+
+<h2 id="summary">6. Chapter III is complete</h2>
+
+**LSTM regulates recurrent information flow with a cell state, a hidden state and learned gates.**
+
+- **Two state paths:** the cell carries internal information; the hidden state exposes a gated, transformed view.
+- **Three gates:** forget, input and output control retention, writing and access.
+- **One core update:** retained old content plus admitted new content forms the new cell state.
+- **A controlled comparison:** our example separates total state value from the contribution of the first write.
+- **A remaining constraint:** consecutive recurrent updates still depend on each other.
+
+This chapter traced five useful ideas: **N-grams → word vectors → feedforward language models → RNNs → LSTMs**. Each introduces a new way to represent or use language context, with its own limitations.
+
+The next chapter begins with **attention**: how can a model choose which other representations matter for a particular prediction?
+
+<h2 id="quiz">Check your understanding</h2>
+
+<LessonQuiz questions={lstmQuiz} />

@@ -28,6 +28,18 @@ const operationsSections: LessonSection[] = [
 ];
 
 const publishedLessons: Record<string, { description: string; sections: LessonSection[] }> = {
+  "nlp-05-lstm": {
+    description: "Give recurrent memory learned gates. Follow cell and hidden states, separate retention from new writes, and understand the remaining limits of sequential computation.",
+    sections: [
+      { id: "selective-memory", title: "Memory needs selective updates" },
+      { id: "two-state-paths", title: "Cell state and hidden state" },
+      { id: "gate-equations", title: "How the gates work" },
+      { id: "worked-memory", title: "Follow a gated memory" },
+      { id: "retention-limits", title: "Long-range retention and limits" },
+      { id: "summary", title: "Chapter III is complete" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
   "nlp-04-rnn": {
     description: "Can a network carry history beyond a fixed window? Follow a recurrent hidden state token by token, then explore fading signals and gradients through time.",
     sections: [
