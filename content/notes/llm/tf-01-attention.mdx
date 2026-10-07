@@ -1,0 +1,254 @@
+import { RecurrentBottleneck, IllustrativeAttentionWeights, QueryKeyValueRoles, AttentionPipeline, AttentionWeightMatrix, QueryKeyGeometry, ValueMixingFlow, AttentionArithmeticExperiment, AttentionSentenceExperiment } from "@/components/notes/AttentionFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { attentionQuiz } from "@/data/attention-lesson";
+
+<h2 id="pronoun-context">1. Who does “it” refer to?</h2>
+
+Compare these sentences:
+
+- **“The kitten didn’t cross the road because it was too tired.”**
+- **“The kitten didn’t cross the road because it was too congested.”**
+
+The adjective changes the likely interpretation. “Tired” suggests the kitten; “congested” suggests the road. Reading the whole sentence lets us connect the pronoun with information elsewhere in the text.
+
+This motivates a question: **could a network choose which other representations are relevant to the position it is processing?** Attention provides a way to calculate such a selection and combine the selected content.
+
+These examples illustrate a linguistic intuition, not a guarantee that one attention layer will resolve every ambiguous pronoun.
+
+<h2 id="recurrent-bottleneck">2. Beyond a single recurrent state</h2>
+
+RNNs and LSTMs update a fixed-size state as they read. A prediction based only on the current state must use the historical information carried through that state.
+
+<RecurrentBottleneck />
+
+Gates improve information flow, but do not turn the state into a complete record of every earlier token. Another approach is to retain representations at separate positions and let a query access them directly.
+
+Attention can also be combined with recurrent networks; it is not restricted to Transformers. In self-attention, positions within the same sequence exchange information through their queries, keys and values.
+
+<ThoughtExercise question="If we store a representation for every position, what else do we need before a query can use the relevant content?">
+
+We need a matching rule, a way to turn match scores into weights, and an operation that combines the selected content.
+
+Keeping separate representations removes the requirement to retrieve everything from one final state, but storing and comparing those representations introduces memory and computation costs.
+
+</ThoughtExercise>
+
+<h2 id="score-weight-mix">3. Score, normalise, mix</h2>
+
+The basic attention computation has three ingredients:
+
+1. **Score:** calculate compatibility between a query and the available keys.
+2. **Normalise:** turn the scores into a distribution of weights, often using Softmax.
+3. **Mix:** sum the value vectors using those weights.
+
+For a simple dot-product score:
+
+$$
+s_j=\mathbf q\cdot\mathbf k_j.
+$$
+
+A dot product depends on **both direction and length**. It is not the same as cosine similarity, and a large dot product is not automatically evidence of semantic similarity. Learned projections make this score useful for the task.
+
+Softmax gives:
+
+$$
+\alpha_j=\frac{e^{s_j}}{\sum_\ell e^{s_\ell}},\qquad
+\sum_j\alpha_j=1.
+$$
+
+Then the output is:
+
+$$
+\mathbf o=\sum_j\alpha_j\mathbf v_j.
+$$
+
+<IllustrativeAttentionWeights />
+
+The weights are a plan for selecting content; the weighted sum actually transfers that content into the output representation. A high attention weight alone does not prove that the model has understood a word's meaning or explain its complete decision.
+
+<h2 id="query-key-value">4. One input, three roles: Q, K and V</h2>
+
+Matching and carrying content are different jobs. A useful analogy is a library:
+
+- **Query:** the request used to find relevant material.
+- **Key:** the matching representation associated with an item.
+- **Value:** the content taken from that item once its weight is known.
+
+Instead of requiring one vector to perform all three jobs unchanged, the model learns separate projections.
+
+With input representations as rows of $X$:
+
+$$
+Q=XW_Q,\qquad K=XW_K,\qquad V=XW_V.
+$$
+
+<QueryKeyValueRoles />
+
+A query is matched against keys; the resulting weights combine **values**, not queries or keys. The projection matrices are trained with the rest of the network. Individual coordinates need not correspond to human-readable categories such as “animal” or “subject”.
+
+The inputs can be embeddings in an initial layer or already contextual representations in a later layer. Self-attention uses the same sequence as the source of all three roles. In cross-attention, queries and key-value pairs can come from different sequences.
+
+<h2 id="matrix-attention">5. Compute every query in one matrix operation</h2>
+
+Stack each position's query into a row of $Q$, and do the same for $K$ and $V$. For $n$ self-attention positions:
+
+$$
+Q,K\in\mathbb R^{n\times d_k},\qquad
+V\in\mathbb R^{n\times d_v}.
+$$
+
+The score matrix is:
+
+$$
+S=QK^{\mathsf T}\in\mathbb R^{n\times n}.
+$$
+
+Its entry $S_{ij}$ is the dot product of query $i$ with key $j$. A **row** asks where one query should look; a **column** identifies one key position. Raw entries are scores, not percentages.
+
+Scale the scores, normalise each row and combine values:
+
+$$
+A=\operatorname{softmax}_{\mathrm{row}}\left(\frac{S}{\sqrt{d_k}}\right),
+\qquad O=AV\in\mathbb R^{n\times d_v}.
+$$
+
+<AttentionPipeline />
+
+### Why divide by the square root of key dimension?
+
+Under a simple assumption that query and key components are independent, zero-mean and unit-variance, their dot product has variance $d_k$. Dividing by $\sqrt{d_k}$ gives unit variance under those assumptions.
+
+Large score differences can push Softmax towards a nearly one-hot distribution with small derivatives. Scaling helps control that effect. It does not guarantee a particular score range or prevent saturation in every trained model.
+
+There is no universal requirement that $d_k=64$; that is one possible head dimension. Our numerical example uses $d_k=2$.
+
+### Masking determines which positions are available
+
+Add a mask before Softmax:
+
+$$
+A=\operatorname{softmax}_{\mathrm{row}}\left(
+\frac{QK^{\mathsf T}}{\sqrt{d_k}}+M\right).
+$$
+
+Allowed entries of $M$ are zero; disallowed entries are represented by negative infinity so their weights become zero. Each query must have at least one allowed key.
+
+**Bidirectional attention** can use positions on both sides of a token. **Causal attention** excludes future positions, so a language model cannot peek at the answer it should predict.
+
+The sentence examples use the later adjective to interpret “it”. They are bidirectional illustrations. A causal query at “it” cannot yet see “tired” or “congested”.
+
+### Shorter paths come with a cost
+
+For an allowed pair of positions, attention can transfer information directly rather than pass it through every intermediate recurrent state. That shorter path does not guarantee perfect recall.
+
+Given all inputs to a layer, multiple query rows can be computed together. Autoregressive generation still produces new tokens sequentially. Dense attention also involves an $n\times n$ score table, with quadratic pairwise work in sequence length.
+
+<h2 id="worked-attention">6. Calculate a two-dimensional example</h2>
+
+Take three teaching positions: **kitten**, **tired** and **it**. These are a shortened, reordered list for arithmetic, not the original sentence's tokenisation.
+
+Choose projected vectors by hand:
+
+$$
+\begin{array}{c|ccc}
+&\mathbf q&\mathbf k&\mathbf v\\\hline
+\mathrm{kitten}&[0.3,0.3]&[1.2,0]&[1,0]\\
+\mathrm{tired}&[0.2,1.5]&[0,1]&[0,1]\\
+\mathrm{it}&[2,0.2]&[0.1,0]&[0.5,0.5]
+\end{array}
+$$
+
+The value coordinates are deliberately easy to read in this example. They are not measured semantic features from a trained model.
+
+### Step 1: dot-product scores
+
+For the query at “it”:
+
+$$
+\begin{aligned}
+\mathbf q_{\mathrm{it}}\cdot\mathbf k_{\mathrm{kitten}}&=2\times1.2+0.2\times0=2.4,\\
+\mathbf q_{\mathrm{it}}\cdot\mathbf k_{\mathrm{tired}}&=2\times0+0.2\times1=0.2,\\
+\mathbf q_{\mathrm{it}}\cdot\mathbf k_{\mathrm{it}}&=2\times0.1+0.2\times0=0.2.
+\end{aligned}
+$$
+
+<QueryKeyGeometry />
+
+Both the kitten key and the “it” key point along the first axis. The kitten key is longer, producing a much larger score. This is why direction alone is not enough to explain the result.
+
+### Step 2: scale the scores
+
+Since $d_k=2$:
+
+$$
+\frac{[2.4,0.2,0.2]}{\sqrt2}
+\approx[1.6971,0.1414,0.1414].
+$$
+
+### Step 3: normalise with Softmax
+
+Using the full-precision scaled scores gives:
+
+$$
+\boldsymbol\alpha\approx[0.7032,0.1484,0.1484].
+$$
+
+About **70.3%** of the weight goes to kitten, with about **14.8%** each for the other two positions. The unrounded weights sum to one; rounded percentages need not sum to exactly 100%.
+
+<AttentionWeightMatrix />
+
+The table shows every query's **normalised weight row**, calculated from the same projected vectors. It is not the raw $QK^{\mathsf T}$ table.
+
+### Step 4: combine values
+
+$$
+\mathbf o_{\mathrm{it}}
+=\alpha_1[1,0]+\alpha_2[0,1]+\alpha_3[0.5,0.5]
+\approx[0.7774,0.2226].
+$$
+
+The output contains mostly the first teaching coordinate, with some of the second. That is the result of our chosen numbers—not proof that a model learned “it means a tired kitten”.
+
+<AttentionArithmeticExperiment />
+
+Choose another query and inspect its scores, weights and output. Disable scaling to see a sharper distribution for the “it” query. Enable the causal mask and choose the first position: only its own key remains allowed, so its weight becomes one and its output equals its value vector.
+
+<ValueMixingFlow />
+
+A complete Transformer applies an output projection and combines attention with residual connections, normalisation and feedforward operations. Attention is one part of how contextual representations are built; it does not simply overwrite every original vector with a linguistic definition.
+
+<h2 id="context-experiment">7. Inspect contextual weight rows</h2>
+
+Return to the two sentence scenarios. Select a word to inspect a row, then switch the adjective and compare the row for “it”.
+
+<AttentionSentenceExperiment />
+
+The scores in this panel are **manually chosen contextual presets**. Softmax actually normalises them, but the panel does not train or run a language model. For other words, its simple rows just illustrate selection and normalisation.
+
+There is another useful limitation: with a single initial-layer query and keys independently projected from unchanged token embeddings, changing a later adjective does not automatically change the relative scores for the unchanged kitten and road keys. Context can affect representations through earlier layers or other processing; our presets assume those contextual scores already exist.
+
+<ThoughtExercise question="If a sentence contains several kinds of relationships, can one weighted mixture always keep all of them distinct?">
+
+One attention head produces one pattern of weights and one value mixture per query. It can carry useful information, but one mixture can blur different relationships.
+
+Multi-head attention learns several projection sets and combines their outputs. The next lesson explores that mechanism. The heads are not guaranteed to correspond to tidy labels such as “grammar”, “pronouns” or “emotion”.
+
+</ThoughtExercise>
+
+<h2 id="summary">8. What you have discovered</h2>
+
+**Attention selects and combines value content using query-key compatibility.**
+
+- **Queries and keys** produce matching scores; **values** supply the combined content.
+- **Scaling by $\sqrt{d_k}$** helps control dot-product magnitude.
+- **Row-wise Softmax** gives weights over the allowed keys.
+- **Multiplication by $V$** turns those weights into contextual output vectors.
+- **Masks** restrict access; causal queries cannot use future positions.
+- **Parallel query computation and shorter paths** are useful, but do not guarantee understanding, unlimited memory or cost-free long contexts.
+
+The next lesson introduces **multi-head attention** and several learned representation subspaces.
+
+<h2 id="quiz">Check your understanding</h2>
+
+<LessonQuiz questions={attentionQuiz} />

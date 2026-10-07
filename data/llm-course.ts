@@ -28,6 +28,20 @@ const operationsSections: LessonSection[] = [
 ];
 
 const publishedLessons: Record<string, { description: string; sections: LessonSection[] }> = {
+  "tf-01-attention": {
+    description: "How can a token select relevant context? Build scaled dot-product attention from queries, keys and values, then calculate a complete two-dimensional example.",
+    sections: [
+      { id: "pronoun-context", title: "Who does it refer to?" },
+      { id: "recurrent-bottleneck", title: "Beyond a single recurrent state" },
+      { id: "score-weight-mix", title: "Score, normalise, mix" },
+      { id: "query-key-value", title: "Query, Key and Value" },
+      { id: "matrix-attention", title: "Compute all queries together" },
+      { id: "worked-attention", title: "A two-dimensional calculation" },
+      { id: "context-experiment", title: "Inspect contextual weight rows" },
+      { id: "summary", title: "What you have discovered" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
   "nlp-05-lstm": {
     description: "Give recurrent memory learned gates. Follow cell and hidden states, separate retention from new writes, and understand the remaining limits of sequential computation.",
     sections: [
