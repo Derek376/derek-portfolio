@@ -1,0 +1,196 @@
+import { ValueMixture, CommunicationAndProcessing, FeedforwardExpansion, StackedBackbone, PositionHeatmap, TransformerOverview, PositionExperiment } from "@/components/notes/TransformerFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { transformerQuiz } from "@/data/transformer-lesson";
+
+<h2 id="beyond-attention">1. Attention is useful. What is still missing?</h2>
+
+The previous lessons gave us a way to select context and combine information from several learned spaces. A token can now receive information from other positions without passing it through a recurrent hidden state one step at a time.
+
+But attention is a component, rather than a complete language model. How do we turn it into a system that predicts the next token?
+
+Start with a small prompt:
+
+**“I am a small ___”**
+
+Imagine that “I”, “am”, “a” and “small” are four tokens. We will assemble a simplified causal language model around this example, then identify the details that make a standard Transformer block complete.
+
+The original 2017 Transformer was an **encoder-decoder model for sequence-to-sequence tasks**. Our next-token example follows a decoder-only pattern to make the main operations easier to follow. These are related architectures, not identical models.
+
+<h2 id="attention-only">2. Start with attention alone</h2>
+
+A first attempt might be:
+
+1. Look up a vector for each token.
+2. Apply attention several times.
+3. Use the last position's vector to predict a continuation.
+
+Attention lets the last position collect information from “I”, “am”, “a” and “small”. For one head, the final value-mixing step is:
+
+$$
+\mathbf h=\sum_j\alpha_j\mathbf v_j,
+\qquad \alpha_j\geq0,\qquad\sum_j\alpha_j=1.
+$$
+
+<ValueMixture />
+
+This weighted sum selects and mixes existing value vectors. We also want a dedicated operation that transforms the resulting contextual features at each position.
+
+Be careful with the distinction: **attention is not simply a linear average of the original embeddings**. Its weights depend on queries and keys through Softmax, its values come from learned projections, and multi-head outputs have another projection. Attention already performs input-dependent nonlinear computation.
+
+The motivation for adding an FFN is therefore not that attention can never compute a new feature. It is that a standard Transformer separates **communication across positions** from a flexible **nonlinear transformation of each position's features**.
+
+<ThoughtExercise question="Once attention has brought context into the last position, what familiar component can transform that contextual representation?">
+
+A feed-forward network. It can combine coordinates through a linear map, apply a nonlinearity and map the result back to the model width.
+
+This is similar to the feed-forward language model in Lesson 16, but here the input to the FFN is already contextualised through attention.
+
+</ThoughtExercise>
+
+<h2 id="feedforward">3. Add a position-wise feed-forward network</h2>
+
+The FFN operates on each row separately, using the same parameters at every position. With row-vector notation:
+
+$$
+\operatorname{FFN}(\mathbf x)
+=\operatorname{ReLU}(\mathbf xW_1+\mathbf b_1)W_2+\mathbf b_2.
+$$
+
+<CommunicationAndProcessing />
+
+“Separately” describes this operation's direct inputs. The rows have already received context from attention, so it does not mean that their representations are unrelated or that they use different FFN weights.
+
+In the original model, the FFN used a $512\rightarrow2048\rightarrow512$ arrangement:
+
+$$
+W_1\in\mathbb R^{512\times2048},\qquad
+W_2\in\mathbb R^{2048\times512}.
+$$
+
+<FeedforwardExpansion />
+
+Expanding the hidden width provides more intermediate nonlinear features. The second projection combines them and returns to the width expected by the next sublayer and residual connection.
+
+For “small”, it is helpful to imagine features responding to contextual clues about size, animals or a description of the speaker. These are intuitions, not guaranteed meanings of individual hidden coordinates. Features can be distributed across coordinates and overlap.
+
+ReLU replaces negative pre-activations with zero. It does not literally decide which linguistic facts are true. The hidden width and activation are architecture choices; other Transformers can use different widths, activations or gated FFNs.
+
+Without the nonlinearity, two consecutive affine maps could be collapsed into one affine map. The hidden transformation and activation give this component its expressive role.
+
+FFNs contain many learned parameters and can contribute to stored associations. It would be too strong to claim that all model knowledge lives there: embeddings, attention and the rest of the network also contribute.
+
+<h2 id="stacking">4. Stack blocks and predict a continuation</h2>
+
+The simplified block now has two main operations: attention exchanges information across positions, then the FFN transforms each contextual row.
+
+Both return the model width. For a sequence of $n$ tokens with width $d$:
+
+$$
+X^{(\ell)}\in\mathbb R^{n\times d}
+\quad\longrightarrow\quad
+X^{(\ell+1)}\in\mathbb R^{n\times d}.
+$$
+
+In our four-token example, a width of $512$ gives $4\times512$ inputs and outputs. Four is the example sequence length, not a fixed requirement. The model's supported context length and available resources limit how much text we can process.
+
+Each block has its own learned parameters. Matching shapes let us feed one block's output into the next, updating the representations repeatedly.
+
+<StackedBackbone />
+
+For generation, project the last position's representation into vocabulary logits and apply Softmax:
+
+$$
+\mathbf z=\mathbf h_{n-1}W_{\mathrm{vocab}}+\mathbf b,
+\qquad
+p_j=\frac{e^{z_j}}{\sum_k e^{z_k}}.
+$$
+
+Here $W_{\mathrm{vocab}}\in\mathbb R^{d\times|\mathcal V|}$, where $|\mathcal V|$ is the vocabulary size. The probabilities are over **tokens**, which need not be complete words.
+
+A model might assign probability to continuations such as “cat”, “dog” or “bird”; no trained predictions are being made in these diagrams. A decoding rule selects a token, appends it to the prompt and repeats. Greedy selection and sampling are different choices, so there is not always one inevitable continuation.
+
+A straightforward implementation recomputes the prefix at each generation step. Later we will see how a key-value cache can reuse work.
+
+### Parallel training does not remove causal order
+
+During training, the sequence is already known. A causal mask prevents a position from attending to later positions, while matrix operations calculate the allowed outputs for many positions in parallel. Shifted targets let each position predict the following token.
+
+This is different from generation: ordinary autoregressive decoding must obtain a new token before using it to predict the next one. Layers also still depend on the outputs of earlier layers.
+
+<h2 id="positions">5. Put order back into the input</h2>
+
+Compare **“cat chases dog”** with **“dog chases cat”**. The words are the same, but their positions change the meaning.
+
+Unmasked self-attention with no positional information is permutation-equivariant: if we reorder its input rows, its output rows reorder correspondingly. It does not by itself attach a distinct representation to “cat at position zero” versus “cat at position two”. Shared position-wise FFNs retain this property.
+
+A causal mask introduces an order-dependent access pattern, so a masked model is not simply an unordered bag of words. Nevertheless, positional mechanisms give it information about positions or relative distances beyond which tokens are allowed to interact.
+
+A familiar approach adds a position vector to each token embedding:
+
+$$
+\mathbf x_p=\mathbf e_{t_p}+\mathbf r_p.
+$$
+
+The original Transformer scaled its embeddings by $\sqrt d$ before this addition. We omit that scaling in the small input-vector experiment so the two contributions are easy to inspect.
+
+For the original sinusoidal position scheme:
+
+$$
+\begin{aligned}
+\operatorname{PE}(p,2i)&=\sin\!\left(\frac{p}{10000^{2i/d}}\right),\\
+\operatorname{PE}(p,2i+1)&=\cos\!\left(\frac{p}{10000^{2i/d}}\right).
+\end{aligned}
+$$
+
+<PositionHeatmap />
+
+The paired coordinates use different frequencies. The vector changes with position, allowing the model to use order alongside token content. A deterministic encoding alone does not guarantee reliable generalisation to arbitrary lengths.
+
+<PositionExperiment />
+
+Learned position embeddings are another option. Rotary position embeddings, or RoPE, encode position through rotations of queries and keys rather than adding the same position vector to token embeddings. The implementation differs, but both provide positional structure for attention.
+
+<h2 id="complete-backbone">6. Assemble the complete backbone</h2>
+
+We can now trace the journey from an input token to a continuation:
+
+| Component | Role |
+| --- | --- |
+| Embedding lookup | Map token IDs to learned vectors. |
+| Positional mechanism | Represent position or relative order. |
+| Attention | Exchange information across permitted positions. |
+| FFN | Transform each contextual row with shared nonlinear processing. |
+| Stacked blocks | Repeat these updates with different parameters. |
+| Vocabulary projection and Softmax | Convert representations into next-token probabilities. |
+
+Two more components belong in a standard block: **residual connections** and **layer normalisation**. A residual branch adds the sublayer's input to its output. Normalisation changes the scale and distribution of coordinates within a row using a defined normalisation operation and learned parameters.
+
+For a post-norm causal self-attention block, omitting dropout:
+
+$$
+\begin{aligned}
+A&=\operatorname{LayerNorm}\!\left(X+\operatorname{MHA}_{\mathrm{causal}}(X)\right),\\
+Y&=\operatorname{LayerNorm}\!\left(A+\operatorname{FFN}(A)\right).
+\end{aligned}
+$$
+
+<TransformerOverview />
+
+This uses the original post-norm ordering to introduce the roles. Later architectures often normalise before sublayers, and some use other normalisation variants. We will examine residual paths and normalisation in their own lesson.
+
+The original encoder-decoder model also has a separate encoder and an extra decoder **cross-attention** sublayer. Cross-attention lets decoder queries access encoder representations. Our decoder-only overview does not include that extra source sequence; the architecture comparison will come in Lesson 23.
+
+<h2 id="summary">7. What you have discovered</h2>
+
+- Attention exchanges contextual information, while an FFN transforms each contextual position through shared nonlinear processing.
+- Blocks keep the sequence's model width, making them straightforward to stack.
+- Position mechanisms supply structure beyond token identity.
+- Residual connections and normalisation are part of a standard block, rather than optional labels on an attention-only diagram.
+- Training can calculate known sequence positions in parallel under a causal mask. New tokens are ordinarily generated step by step.
+
+We have assumed that text can be turned into token IDs. Next, we will examine the missing entrance to this pipeline: **the tokenizer**.
+
+<h2 id="quiz">Check your understanding</h2>
+
+<LessonQuiz questions={transformerQuiz} />

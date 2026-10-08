@@ -13,6 +13,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 When adding or renaming a course lesson, verify the existing chapter order first.
 Every lesson must have a unique global lesson number and full slug. Neural network
 chapter slugs must use consecutive local prefixes `nn-01-` through `nn-07-` in
-chapter order. Do not copy incorrect numbering from the source website. Keep MDX
+chapter order. Large language model slugs must likewise use `tf-01-` through
+`tf-12-` in chapter order: Transformer is `tf-03-transformer`, followed by
+`tf-04-tokenizer`. Source website slugs may omit or misnumber a lesson; use the
+local syllabus order for route names and verify the source lesson by its title. Do not copy incorrect numbering from the source website. Keep MDX
 filenames, imports, course data and route registry consistent; preserve published
 old URLs with redirects when renaming. Run the course validation through the build.

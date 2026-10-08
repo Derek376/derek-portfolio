@@ -28,6 +28,19 @@ const operationsSections: LessonSection[] = [
 ];
 
 const publishedLessons: Record<string, { description: string; sections: LessonSection[] }> = {
+  "tf-03-transformer": {
+    description: "Assemble attention, feed-forward networks and positional information into a Transformer. Follow a token through stacked blocks and distinguish parallel training from step-by-step generation.",
+    sections: [
+      { id: "beyond-attention", title: "What is still missing?" },
+      { id: "attention-only", title: "Start with attention alone" },
+      { id: "feedforward", title: "Add a feed-forward network" },
+      { id: "stacking", title: "Stack blocks and predict" },
+      { id: "positions", title: "Put order back into the input" },
+      { id: "complete-backbone", title: "Assemble the complete backbone" },
+      { id: "summary", title: "What you have discovered" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
   "tf-02-multihead": {
     description: "Why use several attention heads? Compute separate learned projections, combine their outputs, and explore the trade-off between head count, width and cost.",
     sections: [
@@ -291,16 +304,16 @@ export const courseChapters = [
     lessons: [
       lesson("19", "tf-01-attention", "Attention"),
       lesson("20", "tf-02-multihead", "Multi-head attention"),
-      lesson("21", "tf-transformer", "The Transformer architecture"),
-      lesson("22", "tf-03-tokenizer", "Tokenizers"),
-      lesson("23", "tf-04-arch", "Encoders, decoders and large language models"),
-      lesson("24", "tf-05-residual", "Residual connections and layer normalisation"),
-      lesson("25", "tf-06-training", "Pretraining, supervised fine-tuning and reinforcement learning"),
-      lesson("26", "tf-07-sparse", "KV caching, sparse attention and FlashAttention"),
-      lesson("27", "tf-08-moe", "Mixture of experts"),
-      lesson("28", "tf-09-distill", "Model distillation"),
-      lesson("29", "tf-10-recap", "From N-grams to Transformers: a recap"),
-      lesson("30", "tf-11-frontier", "Frontiers and the road ahead"),
+      lesson("21", "tf-03-transformer", "The Transformer architecture"),
+      lesson("22", "tf-04-tokenizer", "Tokenizers"),
+      lesson("23", "tf-05-arch", "Encoders, decoders and large language models"),
+      lesson("24", "tf-06-residual", "Residual connections and layer normalisation"),
+      lesson("25", "tf-07-training", "Pretraining, supervised fine-tuning and reinforcement learning"),
+      lesson("26", "tf-08-sparse", "KV caching, sparse attention and FlashAttention"),
+      lesson("27", "tf-09-moe", "Mixture of experts"),
+      lesson("28", "tf-10-distill", "Model distillation"),
+      lesson("29", "tf-11-recap", "From N-grams to Transformers: a recap"),
+      lesson("30", "tf-12-frontier", "Frontiers and the road ahead"),
     ],
   },
   {
@@ -322,10 +335,12 @@ for (const chapter of courseChapters) {
     }
     lessonNumbers.add(entry.number);
     lessonSlugs.add(entry.slug);
-    if (chapter.id === "neural-networks") {
-      const expectedPrefix = `nn-${String(index + 1).padStart(2, "0")}-`;
+    const slugPrefix = chapter.id === "neural-networks" ? "nn"
+      : chapter.id === "large-language-models" ? "tf" : undefined;
+    if (slugPrefix) {
+      const expectedPrefix = `${slugPrefix}-${String(index + 1).padStart(2, "0")}-`;
       if (!entry.slug.startsWith(expectedPrefix)) {
-        throw new Error(`Neural network lesson ${entry.number} must use ${expectedPrefix}, received ${entry.slug}`);
+        throw new Error(`${chapter.title} lesson ${entry.number} must use ${expectedPrefix}, received ${entry.slug}`);
       }
     }
   });

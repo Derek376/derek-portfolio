@@ -5,6 +5,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/notes/llm/tf-transformer",
+        destination: "/notes/llm/tf-03-transformer",
+        permanent: true,
+      },
+      {
         source: "/notes/llm/nn-03-loss",
         destination: "/notes/llm/nn-04-loss",
         permanent: true,
