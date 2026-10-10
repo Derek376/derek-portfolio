@@ -1,0 +1,148 @@
+import { SpellingAndTokens, TokenGranularity, BpeExperiment, TokenInputPipeline, LanguageUnits, TextUnitsExperiment } from "@/components/notes/TokenizerFigures";
+import ThoughtExercise from "@/components/notes/ThoughtExercise";
+import LessonQuiz from "@/components/notes/LessonQuiz";
+import { tokenizerQuiz } from "@/data/tokenizer-lesson";
+
+<h2 id="text-to-units">1. What does the model actually read?</h2>
+
+The previous lessons started with vectors. But when we type **“I am a small cat”**, we provide text. What connects that text to the Transformer?
+
+A tokenizer maps text into a sequence of **token IDs** using a vocabulary and a set of rules. An embedding lookup then retrieves one learned vector for each ID. Tokenization and embedding are different operations.
+
+A vocabulary is finite: it cannot contain a separate entry for every possible sentence, name or spelling. Instead, the tokenizer represents text using reusable units. A token can be a whole word, a fragment, punctuation, whitespace or a byte-based piece.
+
+Consider a spelling task: **how many r letters are in “strawberry”?** The answer is three.
+
+<SpellingAndTokens />
+
+If input units group several letters, counting token positions does not count letters. A model must recover or know the spelling and perform the requested character operation. This can be harder than predicting a familiar continuation.
+
+However, it is incorrect to say that tokenization necessarily destroys the letters or makes counting impossible. Many tokenizers preserve enough information to decode their ordinary text tokens back into the original text. Models can learn spelling, use character-separated prompts or call tools. Tokenization is one relevant factor, not a complete explanation of every model error.
+
+The split “straw / berry” is illustrative. The actual result depends on the tokenizer, its version and the surrounding text, including spaces.
+
+<ThoughtExercise question="If you designed a tokenizer from scratch, what would happen if you used only whole words? What if you used only individual characters?">
+
+Whole-word vocabularies need entries for many spellings, inflections and names, and can fail to represent unseen words without a fallback. Character-based sequences use smaller reusable pieces but often require many more positions.
+
+A subword vocabulary offers a compromise. Its exact coverage depends on its base alphabet and fallback rules.
+
+</ThoughtExercise>
+
+<h2 id="granularity">2. Two simple approaches and their trade-offs</h2>
+
+### Whole words
+
+One token per word looks natural for space-separated text, but the vocabulary must cover plurals, names, spelling mistakes and new terms. A word-only tokenizer might replace an unseen word with an unknown-token marker, losing the distinction between different unknown inputs.
+
+Spaces do not define every language's word boundaries. Chinese text, for example, also needs a segmentation strategy if the units must be complete words.
+
+### Characters and bytes
+
+Using small units reduces the need to memorise complete words. But a long word becomes many positions: **“internationalization” has 20 ASCII letters**.
+
+Unicode characters and bytes are not interchangeable. A UTF-8 character can require multiple bytes. A complete byte alphabet has 256 possible values; a vocabulary of a few thousand characters does not cover all Unicode text.
+
+Longer sequences also cost more. Dense attention has an $n\times n$ score table per head, so doubling the token length gives four times as many score entries:
+
+$$
+(2n)^2=4n^2.
+$$
+
+That does not mean the entire model's runtime always quadruples: projections, FFNs, memory behaviour and optimised attention implementations also matter.
+
+<TokenGranularity />
+
+### Subwords
+
+Subword tokenizers can keep common strings together while expressing less common ones using smaller pieces. The pieces need not be meaningful roots or syllables.
+
+Whether an unseen input can always be represented depends on the base units and fallback mechanism. A character-based tokenizer with a limited alphabet can still encounter an unknown character. Byte-level BPE can represent UTF-8 text using its complete byte alphabet without an unknown ordinary-text byte.
+
+BPE is widely used, but it is not the only tokenizer family. WordPiece and Unigram use different vocabulary-learning or segmentation rules.
+
+<h2 id="bpe-merges">3. BPE: count pairs, merge, repeat</h2>
+
+Byte-pair encoding learns reusable pieces through repeated pair merges. In a simplified training procedure:
+
+1. Split the training text into initial units.
+2. Count adjacent pairs of current units.
+3. Merge a most frequent pair and add its combined unit to the vocabulary.
+4. Recount and repeat until the vocabulary target or another stopping condition is reached.
+
+Real tokenizers can also normalise text and apply pre-tokenization boundaries. Our experiment uses Unicode code points, three separate sentences and no additional normalisation:
+
+- **我爱吃苹果，苹果很甜。** — I enjoy eating apples; apples are sweet.
+- **红苹果和绿苹果都是水果。** — Red apples and green apples are both fruit.
+- **水果店卖水果。** — The fruit shop sells fruit.
+
+Initially, “苹 / 果” appears four times and “水 / 果” three times. The first merge produces “苹果” (apple). Recounting makes “水 / 果” the next most frequent pair, producing “水果” (fruit).
+
+<BpeExperiment />
+
+After these two rounds, encoding “苹果是水果” changes from five characters into three tokens:
+
+$$
+[\text{苹},\text{果},\text{是},\text{水},\text{果}]
+\longrightarrow
+[\text{苹果},\text{是},\text{水果}].
+$$
+
+**Training and encoding are separate.** Training learns the merge rules from corpus frequencies. When encoding a new sentence, we apply those already learned rules in their priority order; we do not retrain the tokenizer by recounting that sentence.
+
+A merge can only join currently adjacent matching units. Once two characters have been merged, later rounds count that new token as one unit. Ties need a defined rule; this toy implementation keeps first appearance in the corpus.
+
+The tiny vocabulary here retains the initial characters and adds learned pieces. It does not show every feature of a production tokenizer, such as byte-level pre-tokenization, special-token handling or large-scale vocabulary training.
+
+<h2 id="ids-and-embeddings">4. From pieces to integers to vectors</h2>
+
+Each vocabulary entry has an ID. That ID is a lookup index, not a numerical measure of meaning: neighbouring IDs do not necessarily describe similar concepts.
+
+For token ID $t_i$ and embedding table $E$:
+
+$$
+E\in\mathbb R^{|\mathcal V|\times d},\qquad
+\mathbf e_i=E[t_i].
+$$
+
+<TokenInputPipeline />
+
+The table contains one learned row per vocabulary entry. Its values change during model training, while the tokenizer's vocabulary and ID mapping are usually fixed for that model. Calling an embedding “preassigned” should not imply that its numerical values can never be learned or updated.
+
+The correct tokenizer must accompany its model: the same integer can refer to a different piece in another vocabulary. Special tokens may mark boundaries or other model-specific structure and need their own handling.
+
+For ordinary reversible text encoding, a decoder can reconstruct text from the token IDs. Normalisation or an unknown-token replacement can change that guarantee. Also, decoding an individual byte-based token need not produce a complete Unicode character; decoding a full sequence of bytes is what restores the text.
+
+Token IDs become vectors, positional information is introduced, and the Transformer processes those representations. At the output, vocabulary logits correspond to token IDs again; the selected IDs are decoded into text.
+
+<h2 id="languages-and-spelling">5. Languages, token budgets and spelling tasks</h2>
+
+The same meaning can require different token counts in different languages. A vocabulary learned from one data distribution may represent some scripts or common phrases more compactly than others.
+
+<LanguageUnits />
+
+Do not treat “English uses four tokens; Chinese uses eight” as a universal rule. Counts depend on the exact text and tokenizer. Code-point counts and byte counts cannot substitute for model token counts.
+
+A model's context budget is measured in its own tokens. Longer tokenizations use more of that budget. Where a service bills per token, tokenization also affects usage, but actual prices and counting conventions belong to that service.
+
+Spelling-sensitive tasks include counting letters, reversing a string and arranging an acrostic. Their required units can differ from the tokenizer's units. This mismatch can make a task awkward, but it is not proof that every model must fail at it or that the original text was lost.
+
+<TextUnitsExperiment />
+
+This experiment directly counts lowercase r letters in the provided text. It also compares Unicode code points with UTF-8 bytes. Try “猫” or an emoji: one visible symbol can occupy several bytes, and some visible symbols contain several code points.
+
+Character-separated prompts and explicit string-processing tools can help with exact spelling operations. A byte-level **BPE** tokenizer is not the same as a byte-per-token model: it still merges frequent byte sequences into larger units.
+
+<h2 id="summary">6. What you have discovered</h2>
+
+- Tokenization maps text into vocabulary IDs; embedding lookup maps those IDs into learned vectors.
+- Whole words, characters and subwords offer different coverage and sequence-length trade-offs.
+- BPE learns ordered pair merges from training data and reuses those rules when encoding new text.
+- Characters, UTF-8 bytes and model tokens are distinct units.
+- Token boundaries can complicate spelling tasks, but do not necessarily erase spelling or make such tasks impossible.
+
+Next, we will compare **encoders, decoders and encoder-decoder models**, and see how their attention patterns fit different tasks.
+
+<h2 id="quiz">Check your understanding</h2>
+
+<LessonQuiz questions={tokenizerQuiz} />

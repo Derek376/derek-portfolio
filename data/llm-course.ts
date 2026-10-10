@@ -28,6 +28,18 @@ const operationsSections: LessonSection[] = [
 ];
 
 const publishedLessons: Record<string, { description: string; sections: LessonSection[] }> = {
+  "tf-04-tokenizer": {
+    description: "Turn text into reusable pieces, token IDs and embeddings. Learn two BPE merges, compare characters with bytes, and understand why tokens do not always align with spelling tasks.",
+    sections: [
+      { id: "text-to-units", title: "What does the model read?" },
+      { id: "granularity", title: "Words, characters and subwords" },
+      { id: "bpe-merges", title: "Count pairs, merge, repeat" },
+      { id: "ids-and-embeddings", title: "IDs and embedding lookup" },
+      { id: "languages-and-spelling", title: "Languages and spelling tasks" },
+      { id: "summary", title: "What you have discovered" },
+      { id: "quiz", title: "Check your understanding" },
+    ],
+  },
   "tf-03-transformer": {
     description: "Assemble attention, feed-forward networks and positional information into a Transformer. Follow a token through stacked blocks and distinguish parallel training from step-by-step generation.",
     sections: [
